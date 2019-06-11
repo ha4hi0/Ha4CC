@@ -40,6 +40,7 @@ int pos;
 Node *new_node(int ty, Node *lhs, Node *rhs);
 Node *new_node_num(int val);
 Node *expr();
+Node *mul();
 int consume(int ty);
 void gen(Node *node);
 
@@ -73,7 +74,7 @@ void tokenize(){
             continue;
         }
 
-        if(*p == '+' || *p == '-'){
+        if(*p == '+' || *p == '-' || *p == '*' || *p == '/'){
             tokens[i].ty = *p;
             tokens[i].input = p;
             i++;
@@ -122,15 +123,37 @@ int consume(int ty)
     pos++;
     return 1;
 }
+
 Node *expr()
 {
-    Node *node = new_node_num(tokens[pos++].val);
+    Node *node = mul();
 
     for(;;){
         if(consume('+')){
-            node = new_node('+', node, expr());
+            node = new_node('+', node, mul());
         }else if(consume('-')){
-            node = new_node('-', node, expr());
+            node = new_node('-', node, mul());
+        }else{
+            return node;
+        }
+    }
+}
+
+Node *mul()
+{
+    Node *node;
+    if(tokens[pos].ty == TK_NUM){
+        node = new_node_num(tokens[pos++].val);
+    }else{
+        error_at(tokens[pos].input, 
+                "unexpected token: expected a number");
+    }
+
+    for(;;){
+        if(consume('*')){
+            node = new_node('*', node, mul());
+        }else if(consume('/')){
+            node = new_node('/', node, mul());
         }else{
             return node;
         }
@@ -156,6 +179,12 @@ void gen(Node *node){
         case '-':
             printf("    sub rax, rdi\n");
             break;
+        case '*':
+            printf("    imul rdi\n");
+            break;
+        case '/':
+            printf("    cqo\n");
+            printf("    idiv rdi\n");
     }
 
     printf("    push rax\n");
