@@ -17,11 +17,31 @@ typedef struct{
     char *input;    // Token strings for error message
 }Token;
 
+enum{
+    ND_NUM = 256,
+};
+
+typedef struct Node{
+    int ty;         // Token type
+    struct Node *lhs;      // left-hand side node
+    struct Node *rhs;      // right-hand side node
+    int val;        // in case ty is ND_NUM only
+}Node;
+
 // program inputted
 char *user_input;
 
 // Token sequence
 Token tokens[100];
+
+int pos;
+
+// declaration
+Node *new_node(int ty, Node *lhs, Node *rhs);
+Node *new_node_num(int val);
+Node *expr();
+int consume(int ty);
+void gen(Node *node);
 
 // report error
 void error(char *fmt, ...){
@@ -76,6 +96,71 @@ void tokenize(){
     tokens[i].input = p;
 }
 
+// tree
+Node *new_node(int ty, Node *lhs, Node *rhs)
+{
+    Node *node = (Node *)(malloc(sizeof(Node)));
+    node->ty = ty;
+    node->lhs = lhs;
+    node->rhs = rhs;
+    return node;
+}
+
+Node *new_node_num(int val)
+{
+    Node *node = (Node *)(malloc(sizeof(Node)));
+    node->ty = ND_NUM;
+    node->val = val;
+    return node;
+}
+
+int consume(int ty)
+{
+    if(tokens[pos].ty != ty){
+        return 0;
+    }
+    pos++;
+    return 1;
+}
+Node *expr()
+{
+    Node *node = new_node_num(tokens[pos++].val);
+
+    for(;;){
+        if(consume('+')){
+            node = new_node('+', node, expr());
+        }else if(consume('-')){
+            node = new_node('-', node, expr());
+        }else{
+            return node;
+        }
+    }
+}
+
+void gen(Node *node){
+    if(node->ty == ND_NUM){
+        printf("    push %d\n", node->val);
+        return;
+    }
+    
+    gen(node->lhs);
+    gen(node->rhs);
+
+    printf("    pop rdi\n");
+    printf("    pop rax\n");
+
+    switch(node->ty){
+        case '+':
+            printf("    add rax, rdi\n");
+            break;
+        case '-':
+            printf("    sub rax, rdi\n");
+            break;
+    }
+
+    printf("    push rax\n");
+}
+
 int main(int argc, char **argv){
 	if(argc != 2){
 		fprintf(stderr, "Invalid argument");
@@ -85,44 +170,19 @@ int main(int argc, char **argv){
     // tokenize
     user_input = argv[1];
     tokenize();
+    Node *node = expr();
 
     // output the first half of assembly 
 	printf(".intel_syntax noprefix\n");
 	printf(".global main\n");
 	printf("main:\n");
 
-    // check if the formula begins with a number
-    // and output first mov
-    if(tokens[0].ty != TK_NUM){
-        error_at(tokens[0].input, "Not a number");
-    }
-    printf("    mov rax, %d\n", tokens[0].val);
+    // generate codes
+    gen(node);
 
-    int i=1;
-    while(tokens[i].ty != TK_EOF){
-        if(tokens[i].ty == '+'){
-            i++;
-            if(tokens[i].ty != TK_NUM){
-                error_at(tokens[i].input, "Not a number");
-            }
-            printf("    add rax, %d\n", tokens[i].val);
-            i++;
-            continue;
-        }
-
-        if(tokens[i].ty == '-'){
-            i++;
-            if(tokens[i].ty != TK_NUM){
-                error_at(tokens[i].input, "Not a number");
-            }
-            printf("    sub rax, %d\n", tokens[i].val);
-            i++;
-            continue;
-        }
-
-        error_at(tokens[i].input, "Unexpected token");
-    }
-
+    // return top of stack
+    // result of calculation
+    printf("    pop rax\n");
     printf("    ret\n");
     return 0;
 }

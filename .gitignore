@@ -1,0 +1,5 @@
+*~
+*.o
+tmp*
+hcc
+jisaku_compiler.pdf
