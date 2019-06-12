@@ -41,6 +41,7 @@ Node *new_node(int ty, Node *lhs, Node *rhs);
 Node *new_node_num(int val);
 Node *expr();
 Node *mul();
+Node *term();
 int consume(int ty);
 void gen(Node *node);
 
@@ -74,7 +75,7 @@ void tokenize(){
             continue;
         }
 
-        if(*p == '+' || *p == '-' || *p == '*' || *p == '/'){
+        if(*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == ')' || *p == '('){
             tokens[i].ty = *p;
             tokens[i].input = p;
             i++;
@@ -141,23 +142,39 @@ Node *expr()
 
 Node *mul()
 {
+    Node *node = term();
+
+    for(;;){
+        if(consume('*')){
+            node = new_node('*', node, term());
+        }else if(consume('/')){
+            node = new_node('/', node, term());
+        }else{
+            return node;
+        }
+    }
+}
+
+Node *term()
+{
     Node *node;
+
+    if(consume('(')){
+        node = expr();
+        if(!consume(')')){
+            error_at(tokens[pos].input, 
+                    ") expected");
+        }
+        return node;
+    }
+
     if(tokens[pos].ty == TK_NUM){
         node = new_node_num(tokens[pos++].val);
     }else{
         error_at(tokens[pos].input, 
                 "unexpected token: expected a number");
     }
-
-    for(;;){
-        if(consume('*')){
-            node = new_node('*', node, mul());
-        }else if(consume('/')){
-            node = new_node('/', node, mul());
-        }else{
-            return node;
-        }
-    }
+    return node;
 }
 
 void gen(Node *node){
