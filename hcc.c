@@ -41,6 +41,7 @@ Node *new_node(int ty, Node *lhs, Node *rhs);
 Node *new_node_num(int val);
 Node *expr();
 Node *mul();
+Node *unary();
 Node *term();
 int consume(int ty);
 void gen(Node *node);
@@ -142,17 +143,27 @@ Node *expr()
 
 Node *mul()
 {
-    Node *node = term();
+    Node *node = unary();
 
     for(;;){
         if(consume('*')){
-            node = new_node('*', node, term());
+            node = new_node('*', node, unary());
         }else if(consume('/')){
-            node = new_node('/', node, term());
+            node = new_node('/', node, unary());
         }else{
             return node;
         }
     }
+}
+
+Node *unary()
+{
+    if(consume('+')){
+        return term();
+    }else if(consume('-')){
+        return new_node('-', new_node_num(0), term());
+    }
+    return term();
 }
 
 Node *term()
