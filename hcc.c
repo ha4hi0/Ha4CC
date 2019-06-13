@@ -44,7 +44,7 @@ typedef struct{
 char *user_input;
 
 // Token sequence
-Token tokens[100];
+Vector *tokens;
 
 // position of token read
 int pos;
@@ -97,49 +97,56 @@ void tokenize(){
         }
 
         if(!strncmp(p, "==", 2)){
-            tokens[i].ty = TK_EQ;
-            tokens[i].input = p;
-            i++;
+            Token *t = (Token *)malloc(sizeof(Token));
+            t->ty = TK_EQ;
+            t->input = p;
+            vec_push(tokens, t);
             p+=2;
             continue;
         }
 
         if(!strncmp(p, "!=", 2)){
-            tokens[i].ty = TK_NE;
-            tokens[i].input = p;
-            i++;
+            Token *t = (Token *)malloc(sizeof(Token));
+            t->ty = TK_NE;
+            t->input = p;
+            vec_push(tokens, t);
             p+=2;
             continue;
         }
 
         if(!strncmp(p, "<=", 2)){
-            tokens[i].ty = TK_LE;
-            tokens[i].input = p;
-            i++;
+            Token *t = (Token *)malloc(sizeof(Token));
+            t->ty = TK_LE;
+            t->input = p;
+            vec_push(tokens, t);
             p+=2;
             continue;
         }
         
         if(!strncmp(p, ">=", 2)){
-            tokens[i].ty = TK_GE;
-            tokens[i].input = p;
-            i++;
+            Token *t = (Token *)malloc(sizeof(Token));
+            t->ty = TK_GE;
+            t->input = p;
+            vec_push(tokens, t);
             p+=2;
             continue;
         }
         
         if(*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == ')' || *p == '(' || *p == '<' || *p == '>'){
-            tokens[i].ty = *p;
-            tokens[i].input = p;
-            i++;
+            Token *t = (Token *)malloc(sizeof(Token));
+            t->ty = *p;
+            t->input = p;
+            vec_push(tokens, t);
             p++;
             continue;
         }
 
         if(isdigit(*p)){
-            tokens[i].ty = TK_NUM;
-            tokens[i].input = p;
-            tokens[i].val = strtol(p, &p, 10);
+            Token *t = (Token *)malloc(sizeof(Token));
+            t->ty = TK_NUM;
+            t->input = p;
+            t->val = strtol(p, &p, 10);
+            vec_push(tokens, t);
             i++;
             continue;
         }
@@ -147,8 +154,10 @@ void tokenize(){
         error_at(p, "failed to tokenize");
     }
 
-    tokens[i].ty = TK_EOF;
-    tokens[i].input = p;
+    Token *t = (Token *)malloc(sizeof(Token));
+    t->ty = TK_EOF;
+    t->input = p;
+    vec_push(tokens, t);
 }
 
 // tree
@@ -171,7 +180,7 @@ Node *new_node_num(int val)
 
 int consume(int ty)
 {
-    if(tokens[pos].ty != ty){
+    if(((Token *)(tokens->data[pos]))->ty != ty){
         return 0;
     }
     pos++;
@@ -264,16 +273,16 @@ Node *term()
     if(consume('(')){
         node = expr();
         if(!consume(')')){
-            error_at(tokens[pos].input, 
+            error_at(((Token *)(tokens->data[pos]))->input, 
                     ") expected");
         }
         return node;
     }
 
-    if(tokens[pos].ty == TK_NUM){
-        node = new_node_num(tokens[pos++].val);
+    if(((Token *)(tokens->data[pos]))->ty == TK_NUM){
+        node = new_node_num(((Token *)(tokens->data[pos++]))->val);
     }else{
-        error_at(tokens[pos].input, 
+        error_at(((Token *)(tokens->data[pos]))->input, 
                 "unexpected token: expected a number");
     }
     return node;
@@ -388,6 +397,7 @@ int main(int argc, char **argv){
         runtest();
         return 0;
     }
+    tokens = new_vector();
     tokenize();
     Node *node = expr();
 
