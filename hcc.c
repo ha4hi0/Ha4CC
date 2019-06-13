@@ -21,10 +21,12 @@ typedef struct{
     char *input;    // Token strings for error message
 }Token;
 
+// value of node type
 enum{
     ND_NUM = 256,
 };
 
+// Node type
 typedef struct Node{
     int ty;         // Token type
     struct Node *lhs;      // left-hand side node
@@ -32,12 +34,19 @@ typedef struct Node{
     int val;        // in case ty is ND_NUM only
 }Node;
 
+typedef struct{
+    void **data;
+    int capacity;
+    int len;
+}Vector;
+
 // program inputted
 char *user_input;
 
 // Token sequence
 Token tokens[100];
 
+// position of token read
 int pos;
 
 // declaration
@@ -52,6 +61,10 @@ Node *unary();
 Node *term();
 int consume(int ty);
 void gen(Node *node);
+Vector *new_vector();
+void vec_push(Vector *vec, void *elem);
+void expect(int line, int expected, int actual);
+void runtest();
 
 // report error
 void error(char *fmt, ...){
@@ -317,6 +330,52 @@ void gen(Node *node){
     printf("    push rax\n");
 }
 
+// Vector
+Vector *new_vector()
+{
+    Vector *vec = malloc(sizeof(Vector));
+    vec->data = malloc(sizeof(void *)*16);
+    vec->capacity = 16;
+    vec->len = 0;
+    return vec;
+}
+
+void vec_push(Vector *vec, void *elem)
+{
+    if(vec->capacity == vec->len){
+        vec->capacity *= 2;
+        vec->data = realloc(vec->data, sizeof(void *)*vec->capacity);
+    }
+    vec->data[vec->len++] = elem;
+}
+
+// test
+void expect(int line, int expected, int actual)
+{
+    if(expected == actual){
+        return;
+    }
+    fprintf(stderr, "%d: %d expected, but got %d\n", line, expected, actual);
+    exit(1);
+}
+
+void runtest()
+{
+    Vector *vec = new_vector();
+    expect(__LINE__, 0, vec->len);
+
+    for(int i=0; i<100; i++){
+        vec_push(vec, (void *)i);
+    }
+
+    expect(__LINE__, 100, vec->len);
+    expect(__LINE__, 0, (long)vec->data[0]);
+    expect(__LINE__, 50, (long)vec->data[50]);
+    expect(__LINE__, 99, (long)vec->data[99]);
+
+    printf("OK\n");
+}
+
 int main(int argc, char **argv){
 	if(argc != 2){
 		fprintf(stderr, "Invalid argument");
@@ -325,6 +384,10 @@ int main(int argc, char **argv){
 
     // tokenize
     user_input = argv[1];
+    if(!strncmp(argv[1], "-test", 5)){
+        runtest();
+        return 0;
+    }
     tokenize();
     Node *node = expr();
 
