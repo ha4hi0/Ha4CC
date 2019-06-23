@@ -8,6 +8,7 @@
 // value of token type
 enum{
     TK_NUM = 256, // integer token
+    TK_IDENT,     // identifier
     TK_EQ,        // EQual operator
     TK_NE,        // Not Equal operator
     TK_LE,        // Less than or Equal operator
@@ -25,6 +26,7 @@ typedef struct{
 // value of node type
 enum{
     ND_NUM = 256,
+    ND_LVAR,        // Node type of local variables
 };
 
 // Node type
@@ -33,12 +35,16 @@ typedef struct Node{
     struct Node *lhs;      // left-hand side node
     struct Node *rhs;      // right-hand side node
     int val;        // in case ty is ND_NUM only
+    int offset;     // in case ty is ND_LVAR only
 }Node;
 
 void tokenize();
 Node *new_node(int ty, Node *lhs, Node *rhs);
 Node *new_node_num(int val);
+void program();
+Node *stmt();
 Node *expr();
+Node *assign();
 Node *equality();
 Node *relational();
 Node *add();
@@ -49,6 +55,8 @@ int consume(int ty);
 
 // codegen.c
 void gen(Node *node);
+void gen_lval(Node *node);
+
 
 // container.c
 typedef struct{
@@ -68,9 +76,11 @@ extern char *user_input;
 
 // Token sequence
 extern Vector *tokens;
+extern Vector *code;
 
 // position of token read
 extern int pos;
 
 // declaration
 void error_at(char *loc, char *msg);
+void error(char *fmt, ...);

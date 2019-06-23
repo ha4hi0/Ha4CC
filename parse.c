@@ -48,8 +48,17 @@ void tokenize(){
             p+=2;
             continue;
         }
+
+        if('a' <= *p && *p <= 'z'){
+            Token *t = (Token *)malloc(sizeof(Token));
+            t->ty = TK_IDENT;
+            t->input = p;
+            vec_push(tokens, t);
+            p++;
+            continue;
+        }
         
-        if(*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == ')' || *p == '(' || *p == '<' || *p == '>'){
+        if(*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == ')' || *p == '(' || *p == '<' || *p == '>' || *p == '=' ||*p == ';'){
             Token *t = (Token *)malloc(sizeof(Token));
             t->ty = *p;
             t->input = p;
@@ -104,9 +113,35 @@ int consume(int ty)
     return 1;
 }
 
+void program()
+{
+    while(((Token *)(tokens->data[pos]))->ty!=TK_EOF){
+        vec_push(code, stmt());
+    }
+    vec_push(code, NULL);
+}
+
+Node *stmt()
+{
+    Node *node = expr();
+    if(!consume(';')){
+        error_at(((Token *)(tokens->data[pos]))->input, "expected ';' token");
+    }
+    return node;
+}
+
 Node *expr()
 {
-    return equality();
+    return assign();
+}
+
+Node *assign()
+{
+    Node *node = equality();
+    if(consume('=')){
+        node = new_node('=', node, assign());
+    }
+    return node;
 }
 
 Node *equality()
@@ -198,6 +233,11 @@ Node *term()
 
     if(((Token *)(tokens->data[pos]))->ty == TK_NUM){
         node = new_node_num(((Token *)(tokens->data[pos++]))->val);
+    }else if(((Token *)(tokens->data[pos]))->ty == TK_IDENT){
+        char varname = ((Token *)(tokens->data[pos++]))->input[0];
+        node = malloc(sizeof(Node));
+        node->ty = ND_LVAR;
+        node->offset = (varname - 'a' + 1) * 8;
     }else{
         error_at(((Token *)(tokens->data[pos]))->input, 
                 "unexpected token: expected a number");

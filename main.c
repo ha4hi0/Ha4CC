@@ -2,6 +2,7 @@
 
 char *user_input;
 Vector *tokens;
+Vector *code;
 int pos;
 
 int main(int argc, char **argv){
@@ -16,21 +17,32 @@ int main(int argc, char **argv){
         runtest();
         return 0;
     }
+    code = new_vector();
     tokens = new_vector();
     tokenize();
-    Node *node = expr();
+    program();
 
     // output the first half of assembly 
 	printf(".intel_syntax noprefix\n");
 	printf(".global main\n");
 	printf("main:\n");
 
+    // prologue
+    printf("    push rbp\n");
+    printf("    mov rbp, rsp\n");
+    printf("    sub rsp, 26*8\n");
+
     // generate codes
-    gen(node);
+    for(int i=0; code->data[i]; i++){
+        gen(((Node *)(code->data[i])));
+        printf("    pop rax\n");
+
+    }
 
     // return top of stack
     // result of calculation
-    printf("    pop rax\n");
+    printf("    mov rsp, rbp\n");
+    printf("    pop rbp\n");
     printf("    ret\n");
     return 0;
 }
