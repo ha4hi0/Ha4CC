@@ -1,6 +1,14 @@
 // parse.c
 #include "hcc.h"
 
+int is_alnum(char c)
+{
+    return ('a' <= c && c <= 'z') ||
+           ('A' <= c && c <= 'Z') ||
+           ('0' <= c && c <= '9') ||
+           (c == '_');
+}
+
 // break string up into tokens
 void tokenize(){
     char *p = user_input;
@@ -10,6 +18,15 @@ void tokenize(){
         // skip space
         if(isspace(*p)){
             p++;
+            continue;
+        }
+
+        if(!(strncmp(p, "return", 6) || is_alnum(p[6]))){
+            Token *t = (Token *)malloc(sizeof(Token));
+            t->ty = TK_RETURN;
+            t->input = p;
+            p+=6;
+            vec_push(tokens, t);
             continue;
         }
 
@@ -123,7 +140,14 @@ void program()
 
 Node *stmt()
 {
-    Node *node = expr();
+    Node *node;
+    if(consume(TK_RETURN)){
+        node = malloc(sizeof(Node));
+        node->ty = ND_RETURN;
+        node->lhs = expr();
+    }else{
+        node = expr();
+    }
     if(!consume(';')){
         error_at(((Token *)(tokens->data[pos]))->input, "expected ';' token");
     }

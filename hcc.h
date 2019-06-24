@@ -9,6 +9,7 @@
 enum{
     TK_NUM = 256, // integer token
     TK_IDENT,     // identifier
+    TK_RETURN,
     TK_EQ,        // EQual operator
     TK_NE,        // Not Equal operator
     TK_LE,        // Less than or Equal operator
@@ -27,6 +28,7 @@ typedef struct{
 enum{
     ND_NUM = 256,
     ND_LVAR,        // Node type of local variables
+    ND_RETURN,
 };
 
 // Node type
