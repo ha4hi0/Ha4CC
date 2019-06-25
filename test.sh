@@ -33,5 +33,6 @@ try 1 "a=1;"
 try 6 "b=5;d=1;z=3;a=b*(z-d);2*a/3;"
 try 11 "5+3;n=10/2;c=2+1;return n*c-4;"
 try 8  "return 8;return 5;"
+try 10 "pi=31415;count=100*314;return 2*(pi-count)/3;"
 
 echo OK
