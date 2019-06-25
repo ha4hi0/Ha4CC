@@ -4,6 +4,8 @@ char *user_input;
 Vector *tokens;
 Vector *code;
 int pos;
+int count_local_var=0;
+Map *local_var;
 
 int main(int argc, char **argv){
 	if(argc != 2){
@@ -30,7 +32,7 @@ int main(int argc, char **argv){
     // prologue
     printf("    push rbp\n");
     printf("    mov rbp, rsp\n");
-    printf("    sub rsp, 26*8\n");
+    printf("    sub rsp, %d*8\n", count_local_var);
 
     // generate codes
     for(int i=0; code->data[i]; i++){

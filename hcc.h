@@ -20,7 +20,8 @@ enum{
 // Token type
 typedef struct{
     int ty;         // Token type
-    int val;        // value of token if ty is TK_NUM
+    int val;        // value of TK_NUM token
+    char *name;     // name of TK_IDENT token
     char *input;    // Token strings for error message
 }Token;
 
@@ -67,10 +68,18 @@ typedef struct{
     int len;
 }Vector;
 
+typedef struct{
+    Vector *keys;
+    Vector *vals;
+} Map;
+
 Vector *new_vector();
 void vec_push(Vector *vec, void *elem);
 void expect(int line, int expected, int actual);
 void runtest();
+Map *new_map();
+void map_put(Map *map, char *key, void *val);
+void *map_get(Map *map, char *key);
 
 // main.c
 // program inputted
@@ -79,9 +88,11 @@ extern char *user_input;
 // Token sequence
 extern Vector *tokens;
 extern Vector *code;
+extern Map *local_var;
 
 // position of token read
 extern int pos;
+extern int count_local_var;
 
 // declaration
 void error_at(char *loc, char *msg);

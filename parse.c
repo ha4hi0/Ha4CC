@@ -12,9 +12,11 @@ int is_alnum(char c)
 // break string up into tokens
 void tokenize(){
     char *p = user_input;
+    local_var = new_map();
 
-    int i=0;
     while(*p){
+        //fprintf(stderr, "%s\n", p);
+
         // skip space
         if(isspace(*p)){
             p++;
@@ -66,14 +68,14 @@ void tokenize(){
             continue;
         }
 
-        if('a' <= *p && *p <= 'z'){
-            Token *t = (Token *)malloc(sizeof(Token));
-            t->ty = TK_IDENT;
-            t->input = p;
-            vec_push(tokens, t);
-            p++;
-            continue;
-        }
+//        if('a' <= *p && *p <= 'z'){
+//            Token *t = (Token *)malloc(sizeof(Token));
+//            t->ty = TK_IDENT;
+//            t->input = p;
+//            vec_push(tokens, t);
+//            p++;
+//            continue;
+//        }
         
         if(*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == ')' || *p == '(' || *p == '<' || *p == '>' || *p == '=' ||*p == ';'){
             Token *t = (Token *)malloc(sizeof(Token));
@@ -90,7 +92,23 @@ void tokenize(){
             t->input = p;
             t->val = strtol(p, &p, 10);
             vec_push(tokens, t);
-            i++;
+            continue;
+        }
+
+        if(is_alnum(*p)){
+            int i=0;
+            count_local_var++;
+            for(;is_alnum(*(p+i));i++);
+            Token *t = malloc(sizeof(Token));
+            t->ty = TK_IDENT;
+            t->name = malloc(sizeof(char)*i);
+            strncpy(t->name, p, i);
+            t->name[i]='\0';
+            //t->name = strdup(p);
+            t->input = p;
+            vec_push(tokens,t);
+            map_put(local_var, t->name, (void *)(count_local_var*8));
+            p+=i;
             continue;
         }
 
@@ -258,10 +276,10 @@ Node *term()
     if(((Token *)(tokens->data[pos]))->ty == TK_NUM){
         node = new_node_num(((Token *)(tokens->data[pos++]))->val);
     }else if(((Token *)(tokens->data[pos]))->ty == TK_IDENT){
-        char varname = ((Token *)(tokens->data[pos++]))->input[0];
+        char *varname = ((Token *)(tokens->data[pos++]))->name;
         node = malloc(sizeof(Node));
         node->ty = ND_LVAR;
-        node->offset = (varname - 'a' + 1) * 8;
+        node->offset = (int)map_get(local_var, varname);
     }else{
         error_at(((Token *)(tokens->data[pos]))->input, 
                 "unexpected token: expected a number");

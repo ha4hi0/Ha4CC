@@ -9,8 +9,9 @@ try(){
     ./tmp
     actual="$?"
 
+    echo "$input"
     if [ "$actual" = "$expected" ]; then
-        echo "$input => $actual"
+        echo "=> $actual"
     else
         echo "$expected expected, but got $actual"
         exit 1
