@@ -10,6 +10,7 @@ enum{
     TK_NUM = 256, // integer token
     TK_IDENT,     // identifier
     TK_RETURN,
+    TK_IF,
     TK_EQ,        // EQual operator
     TK_NE,        // Not Equal operator
     TK_LE,        // Less than or Equal operator
@@ -30,6 +31,7 @@ enum{
     ND_NUM = 256,
     ND_LVAR,        // Node type of local variables
     ND_RETURN,
+    ND_IF,
 };
 
 // Node type
@@ -93,6 +95,9 @@ extern Map *local_var;
 // position of token read
 extern int pos;
 extern int count_local_var;
+extern int count_begin;
+extern int count_else;
+extern int count_end;
 
 // declaration
 void error_at(char *loc, char *msg);

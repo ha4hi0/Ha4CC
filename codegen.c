@@ -2,6 +2,18 @@
 #include "hcc.h"
 
 void gen(Node *node){
+    if(node->ty == ND_IF){
+        count_end++;
+        int Lend = count_end;
+        gen(node->lhs);
+        printf("    pop rax\n");
+        printf("    cmp rax, 0\n");
+        printf("    je .Lend%d\n", Lend);
+        gen(node->rhs);
+        printf(".Lend%d:\n", Lend);
+        return;
+    }
+
     if(node->ty == ND_RETURN){
         gen(node->lhs);
         printf("    pop rax\n");

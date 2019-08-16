@@ -68,14 +68,14 @@ void tokenize(){
             continue;
         }
 
-//        if('a' <= *p && *p <= 'z'){
-//            Token *t = (Token *)malloc(sizeof(Token));
-//            t->ty = TK_IDENT;
-//            t->input = p;
-//            vec_push(tokens, t);
-//            p++;
-//            continue;
-//        }
+        if(!(strncmp(p, "if", 2) || is_alnum(p[2]))){
+            Token *t = (Token *)malloc(sizeof(Token));
+            t->ty = TK_IF;
+            t->input = p;
+            vec_push(tokens, t);
+            p+=2;
+            continue;
+        }
         
         if(*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == ')' || *p == '(' || *p == '<' || *p == '>' || *p == '=' ||*p == ';'){
             Token *t = (Token *)malloc(sizeof(Token));
@@ -159,15 +159,26 @@ void program()
 Node *stmt()
 {
     Node *node;
-    if(consume(TK_RETURN)){
-        node = malloc(sizeof(Node));
-        node->ty = ND_RETURN;
-        node->lhs = expr();
+    if(consume(TK_IF)){
+        if(!consume('(')){
+            error_at(((Token *)(tokens->data[pos]))->input, "( expected");
+        }
+        Node *lhs = expr();
+        if(!consume(')')){
+            error_at(((Token *)(tokens->data[pos]))->input, ") expected");
+        }
+        node = new_node(ND_IF, lhs, stmt());
     }else{
-        node = expr();
-    }
-    if(!consume(';')){
-        error_at(((Token *)(tokens->data[pos]))->input, "expected ';' token");
+        if(consume(TK_RETURN)){
+            node = malloc(sizeof(Node));
+            node->ty = ND_RETURN;
+            node->lhs = expr();
+        }else{
+            node = expr();
+        }
+        if(!consume(';')){
+            error_at(((Token *)(tokens->data[pos]))->input, "expected ';' token");
+        }
     }
     return node;
 }

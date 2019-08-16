@@ -4,7 +4,10 @@ char *user_input;
 Vector *tokens;
 Vector *code;
 int pos;
-int count_local_var=0;
+int count_local_var = 0;
+int count_begin = 0;
+int count_else = 0;
+int count_end = 0;
 Map *local_var;
 
 int main(int argc, char **argv){
@@ -38,7 +41,6 @@ int main(int argc, char **argv){
     for(int i=0; code->data[i]; i++){
         gen(((Node *)(code->data[i])));
         printf("    pop rax\n");
-
     }
 
     // return top of stack
