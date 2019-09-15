@@ -32,6 +32,15 @@ void tokenize(){
             continue;
         }
 
+        if(!(strncmp(p, "else", 4) || is_alnum(p[4]))){
+            Token *t = (Token *)malloc(sizeof(Token));
+            t->ty = TK_ELS;
+            t->input = p;
+            p+=4;
+            vec_push(tokens, t);
+            continue;
+        }
+
         if(!strncmp(p, "==", 2)){
             Token *t = (Token *)malloc(sizeof(Token));
             t->ty = TK_EQ;
@@ -139,6 +148,16 @@ Node *new_node_num(int val)
     return node;
 }
 
+Node *new_node_if(Node *cond, Node *then, Node *els)
+{
+    Node *node = (Node *)(malloc(sizeof(Node)));
+    node->ty = ND_IF;
+    node->cond = cond;
+    node->then = then;
+    node->els = els;
+    return node;
+}
+
 int consume(int ty)
 {
     if(((Token *)(tokens->data[pos]))->ty != ty){
@@ -163,11 +182,16 @@ Node *stmt()
         if(!consume('(')){
             error_at(((Token *)(tokens->data[pos]))->input, "( expected");
         }
-        Node *lhs = expr();
+        Node *cond = expr();
         if(!consume(')')){
             error_at(((Token *)(tokens->data[pos]))->input, ") expected");
         }
-        node = new_node(ND_IF, lhs, stmt());
+        Node *then = stmt();
+        Node *els = NULL;
+        if(consume(TK_ELS)){
+            els = stmt();
+        }
+        node = new_node_if(cond, then, els);
     }else{
         if(consume(TK_RETURN)){
             node = malloc(sizeof(Node));

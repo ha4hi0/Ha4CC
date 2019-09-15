@@ -3,14 +3,7 @@
 
 void gen(Node *node){
     if(node->ty == ND_IF){
-        count_end++;
-        int Lend = count_end;
-        gen(node->lhs);
-        printf("    pop rax\n");
-        printf("    cmp rax, 0\n");
-        printf("    je .Lend%d\n", Lend);
-        gen(node->rhs);
-        printf(".Lend%d:\n", Lend);
+        gen_if(node);
         return;
     }
 
@@ -100,4 +93,31 @@ void gen_lval(Node *node)
     printf("    mov rax, rbp\n");
     printf("    sub rax, %d\n", node->offset);
     printf("    push rax\n");
+}
+
+void gen_if(Node *node)
+{
+    if(node->els == NULL){
+        count_end++;
+        int Lend = count_end;
+        gen(node->cond);
+        printf("    pop rax\n");
+        printf("    cmp rax, 0\n");
+        printf("    je .Lend%d\n", Lend);
+        gen(node->then);
+        printf(".Lend%d:\n", Lend);
+    }else{
+        count_end++;
+        count_else++;
+        int Lend = count_end;
+        int Lelse = count_else;
+        gen(node->cond);
+        printf("    pop rax\n");
+        printf("    cmp rax, 0\n");
+        printf("    je .Lelse%d\n", Lelse);
+        gen(node->then);
+        printf(".Lelse%d:\n", Lelse);
+        gen(node->els);
+        printf(".Lend%d:\n", Lend);
+    }
 }

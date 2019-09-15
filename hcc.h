@@ -11,6 +11,7 @@ enum{
     TK_IDENT,     // identifier
     TK_RETURN,
     TK_IF,
+    TK_ELS,
     TK_EQ,        // EQual operator
     TK_NE,        // Not Equal operator
     TK_LE,        // Less than or Equal operator
@@ -41,11 +42,15 @@ typedef struct Node{
     struct Node *rhs;      // right-hand side node
     int val;        // in case ty is ND_NUM only
     int offset;     // in case ty is ND_LVAR only
+    struct Node *cond;
+    struct Node *then;
+    struct Node *els;
 }Node;
 
 void tokenize();
 Node *new_node(int ty, Node *lhs, Node *rhs);
 Node *new_node_num(int val);
+Node *new_node_if(Node *cond, Node *then, Node *els);
 void program();
 Node *stmt();
 Node *expr();
@@ -61,7 +66,7 @@ int consume(int ty);
 // codegen.c
 void gen(Node *node);
 void gen_lval(Node *node);
-
+void gen_if(Node *node);
 
 // container.c
 typedef struct{
