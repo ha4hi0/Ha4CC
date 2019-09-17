@@ -12,6 +12,7 @@ enum{
     TK_RETURN,
     TK_IF,
     TK_ELS,
+    TK_FOR,
     TK_EQ,        // EQual operator
     TK_NE,        // Not Equal operator
     TK_LE,        // Less than or Equal operator
@@ -33,6 +34,7 @@ enum{
     ND_LVAR,        // Node type of local variables
     ND_RETURN,
     ND_IF,
+    ND_FOR,
 };
 
 // Node type
@@ -45,6 +47,9 @@ typedef struct Node{
     struct Node *cond;
     struct Node *then;
     struct Node *els;
+    struct Node *init;
+    struct Node *inc;
+    struct Node *stmts;
 }Node;
 
 void tokenize();
@@ -62,11 +67,13 @@ Node *mul();
 Node *unary();
 Node *term();
 int consume(int ty);
+void expect_token(int ty);
 
 // codegen.c
 void gen(Node *node);
 void gen_lval(Node *node);
 void gen_if(Node *node);
+void gen_for(Node *node);
 
 // container.c
 typedef struct{

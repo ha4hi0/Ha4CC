@@ -15,7 +15,6 @@ void tokenize(){
     local_var = new_map();
 
     while(*p){
-        //fprintf(stderr, "%s\n", p);
 
         // skip space
         if(isspace(*p)){
@@ -38,6 +37,15 @@ void tokenize(){
             t->input = p;
             p+=4;
             vec_push(tokens, t);
+            continue;
+        }
+
+        if(!(strncmp(p, "for", 3) || is_alnum(p[3]))){
+            Token *t = (Token *)malloc(sizeof(Token));
+            t->ty = TK_FOR;
+            t->input = p;
+            vec_push(tokens, t);
+            p+=3;
             continue;
         }
 
@@ -177,34 +185,58 @@ void program()
 
 Node *stmt()
 {
+    Token *t = tokens->data[pos];
     Node *node;
-    if(consume(TK_IF)){
-        if(!consume('(')){
-            error_at(((Token *)(tokens->data[pos]))->input, "( expected");
-        }
-        Node *cond = expr();
-        if(!consume(')')){
-            error_at(((Token *)(tokens->data[pos]))->input, ") expected");
-        }
+    Node *cond=NULL;
+    switch(t->ty){
+    case TK_IF:
+        pos++;
+        expect_token('(');
+        cond = expr();
+        expect_token(')');
         Node *then = stmt();
         Node *els = NULL;
         if(consume(TK_ELS)){
             els = stmt();
         }
         node = new_node_if(cond, then, els);
-    }else{
-        if(consume(TK_RETURN)){
-            node = malloc(sizeof(Node));
-            node->ty = ND_RETURN;
-            node->lhs = expr();
-        }else{
-            node = expr();
+        return node;
+    case TK_FOR:
+        pos++;
+        Node *init = NULL;
+        Node *inc = NULL;
+        expect_token('(');
+        if(!consume(';')){
+            init = expr();
+            expect_token(';');
         }
         if(!consume(';')){
-            error_at(((Token *)(tokens->data[pos]))->input, "expected ';' token");
+            cond = expr();
+            expect_token(';');
         }
+        if(!consume(';')){
+            inc = expr();
+        }
+        expect_token(')');
+        node = (Node *)malloc(sizeof(Node));
+        node->ty = ND_FOR;
+        node->cond = cond;
+        node->init = init;
+        node->inc = inc;
+        node->stmts = stmt();
+        return node;
+    case TK_RETURN:
+        pos++;
+        node = malloc(sizeof(Node));
+        node->ty = ND_RETURN;
+        node->lhs = expr();
+        expect_token(';');
+        return node;
+    default:
+        node = expr();
+        expect_token(';');
+        return node;
     }
-    return node;
 }
 
 Node *expr()
@@ -322,3 +354,10 @@ Node *term()
     return node;
 }
 
+void expect_token(int ty)
+{
+    Token *t = tokens->data[pos];
+    if(!consume(ty)){
+        error("%c (%d) expected, but got %c (%d)", ty, ty, t->ty, t->ty);
+    }
+}

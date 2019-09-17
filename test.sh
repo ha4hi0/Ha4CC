@@ -37,5 +37,6 @@ try 10 "pi=31415;count=100*314;return 2*(pi-count)/3;"
 try 1 "if(0)return 0;return 1;"
 try 10 "ab=10; if(ab/5==2)return ab; return -10;"
 try 0 " alpha=10;beta=0;if(alpha<beta)beta=alpha;else alpha=beta; return alpha;"
+try 45 "sum=0; for(a=0;a<10;a=a+1)sum=sum+a;return sum;"
 
 echo OK

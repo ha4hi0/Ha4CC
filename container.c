@@ -30,7 +30,6 @@ void expect(int line, int expected, int actual)
     exit(1);
 }
 
-
 Map *new_map()
 {
     Map *map = malloc(sizeof(Map));

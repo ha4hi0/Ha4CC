@@ -29,6 +29,11 @@ void gen(Node *node){
         return;
     }
 
+    if(node->ty == ND_FOR){
+        gen_for(node);
+        return;
+    }
+
     if(node->ty == '='){
         gen_lval(node->lhs);
         gen(node->rhs);
@@ -120,4 +125,25 @@ void gen_if(Node *node)
         gen(node->els);
         printf(".Lend%d:\n", Lend);
     }
+}
+
+void gen_for(Node *node)
+{
+    count_begin++;
+    count_end++;
+    int Lbegin = count_begin;
+    if(node->init != NULL){
+        gen(node->init);
+    }
+    printf(".Lbegin%d:\n", Lbegin);
+    if(node->cond != NULL){
+        gen(node->cond);
+        printf("    pop rax\n");
+        printf("    cmp rax, 0\n");
+        printf("    je .Lend%d\n", count_end);
+    }
+    gen(node->stmts);
+    gen(node->inc);
+    printf("    jmp .Lbegin%d\n", count_begin);
+    printf(".Lend%d:\n", count_end);
 }
