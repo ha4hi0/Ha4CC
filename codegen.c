@@ -7,6 +7,11 @@ void gen(Node *node){
         return;
     }
 
+    if(node->ty == ND_WHILE){
+        gen_while(node);
+        return;
+    }
+
     if(node->ty == ND_RETURN){
         gen(node->lhs);
         printf("    pop rax\n");
@@ -132,6 +137,7 @@ void gen_for(Node *node)
     count_begin++;
     count_end++;
     int Lbegin = count_begin;
+    int Lend = count_end;
     if(node->init != NULL){
         gen(node->init);
     }
@@ -140,10 +146,26 @@ void gen_for(Node *node)
         gen(node->cond);
         printf("    pop rax\n");
         printf("    cmp rax, 0\n");
-        printf("    je .Lend%d\n", count_end);
+        printf("    je .Lend%d\n", Lend);
     }
     gen(node->stmts);
     gen(node->inc);
-    printf("    jmp .Lbegin%d\n", count_begin);
-    printf(".Lend%d:\n", count_end);
+    printf("    jmp .Lbegin%d\n", Lbegin);
+    printf(".Lend%d:\n", Lend);
+}
+
+void gen_while(Node *node)
+{
+    count_begin++;
+    count_end++;
+    int Lbegin = count_begin;
+    int Lend = count_end;
+    printf(".Lbegin%d:\n", Lbegin);
+    gen(node->cond);
+    printf("    pop rax\n");
+    printf("    cmp rax, 0\n");
+    printf("    je .Lend%d\n", Lend);
+    gen(node->stmts);
+    printf("    jmp .Lbegin%d\n", Lbegin);
+    printf(".Lend%d:\n", Lend);
 }

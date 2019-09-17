@@ -31,6 +31,15 @@ void tokenize(){
             continue;
         }
 
+        if(!(strncmp(p, "while", 5) || is_alnum(p[5]))){
+            Token *t = (Token *)malloc(sizeof(Token));
+            t->ty = TK_WHILE;
+            t->input = p;
+            p+=5;
+            vec_push(tokens, t);
+            continue;
+        }
+
         if(!(strncmp(p, "else", 4) || is_alnum(p[4]))){
             Token *t = (Token *)malloc(sizeof(Token));
             t->ty = TK_ELS;
@@ -188,23 +197,23 @@ Node *stmt()
     Token *t = tokens->data[pos];
     Node *node;
     Node *cond=NULL;
+    Node *init = NULL;
+    Node *inc = NULL;
+    Node *els = NULL;
+    Node *then = NULL;
     switch(t->ty){
     case TK_IF:
         pos++;
         expect_token('(');
         cond = expr();
         expect_token(')');
-        Node *then = stmt();
-        Node *els = NULL;
+        then = stmt();
         if(consume(TK_ELS)){
             els = stmt();
         }
-        node = new_node_if(cond, then, els);
-        return node;
+        return new_node_if(cond, then, els);
     case TK_FOR:
         pos++;
-        Node *init = NULL;
-        Node *inc = NULL;
         expect_token('(');
         if(!consume(';')){
             init = expr();
@@ -218,11 +227,21 @@ Node *stmt()
             inc = expr();
         }
         expect_token(')');
-        node = (Node *)malloc(sizeof(Node));
+        node = malloc(sizeof(Node));
         node->ty = ND_FOR;
         node->cond = cond;
         node->init = init;
         node->inc = inc;
+        node->stmts = stmt();
+        return node;
+    case TK_WHILE:
+        pos++;
+        node = malloc(sizeof(Node));
+        expect_token('(');
+        cond = expr();
+        expect_token(')');
+        node->ty = ND_WHILE;
+        node->cond = cond;
         node->stmts = stmt();
         return node;
     case TK_RETURN:
@@ -259,9 +278,9 @@ Node *equality()
 
     while(1){
         if(consume(TK_EQ)){
-            node = new_node(TK_EQ, node, relational());
+            node = new_node(ND_EQ, node, relational());
         }else if(consume(TK_NE)){
-            node = new_node(TK_NE, node, relational());
+            node = new_node(ND_NE, node, relational());
         }else{
             return node;
         }
@@ -278,9 +297,9 @@ Node *relational()
         }else if(consume('>')){
             node = new_node('<', add(), node);
         }else if(consume(TK_LE)){
-            node = new_node(TK_LE, node, add());
+            node = new_node(ND_LE, node, add());
         }else if(consume(TK_GE)){
-            node = new_node(TK_LE, add(), node);
+            node = new_node(ND_LE, add(), node);
         }else{
             return node;
         }

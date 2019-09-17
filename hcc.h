@@ -10,13 +10,14 @@ enum{
     TK_NUM = 256, // integer token
     TK_IDENT,     // identifier
     TK_RETURN,
-    TK_IF,
-    TK_ELS,
-    TK_FOR,
     TK_EQ,        // EQual operator
     TK_NE,        // Not Equal operator
     TK_LE,        // Less than or Equal operator
     TK_GE,        // Grater than or Equal operator
+    TK_IF,
+    TK_ELS,
+    TK_FOR,
+    TK_WHILE,
     TK_EOF,       // EOF token
 };
 
@@ -33,8 +34,12 @@ enum{
     ND_NUM = 256,
     ND_LVAR,        // Node type of local variables
     ND_RETURN,
+    ND_EQ,
+    ND_NE,
+    ND_LE,
     ND_IF,
     ND_FOR,
+    ND_WHILE,
 };
 
 // Node type
@@ -74,6 +79,7 @@ void gen(Node *node);
 void gen_lval(Node *node);
 void gen_if(Node *node);
 void gen_for(Node *node);
+void gen_while(Node *node);
 
 // container.c
 typedef struct{
