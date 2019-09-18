@@ -142,14 +142,14 @@ void gen_for(Node *node)
         gen(node->init);
     }
     printf(".Lbegin%d:\n", Lbegin);
-    if(node->cond != NULL){
-        gen(node->cond);
+    if(node->for_cond != NULL){
+        gen(node->for_cond);
         printf("    pop rax\n");
         printf("    cmp rax, 0\n");
         printf("    je .Lend%d\n", Lend);
     }
-    gen(node->stmts);
-    gen(node->inc);
+    gen(node->body);
+    gen(node->iter);
     printf("    jmp .Lbegin%d\n", Lbegin);
     printf(".Lend%d:\n", Lend);
 }
@@ -165,7 +165,7 @@ void gen_while(Node *node)
     printf("    pop rax\n");
     printf("    cmp rax, 0\n");
     printf("    je .Lend%d\n", Lend);
-    gen(node->stmts);
+    gen(node->then);
     printf("    jmp .Lbegin%d\n", Lbegin);
     printf(".Lend%d:\n", Lend);
 }

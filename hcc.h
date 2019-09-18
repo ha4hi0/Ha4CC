@@ -1,3 +1,7 @@
+#pragma once
+#ifndef HCC_H
+#define HCC_H
+
 #include <ctype.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -45,16 +49,35 @@ enum{
 // Node type
 typedef struct Node{
     int ty;         // Token type
-    struct Node *lhs;      // left-hand side node
-    struct Node *rhs;      // right-hand side node
-    int val;        // in case ty is ND_NUM only
-    int offset;     // in case ty is ND_LVAR only
-    struct Node *cond;
-    struct Node *then;
-    struct Node *els;
-    struct Node *init;
-    struct Node *inc;
-    struct Node *stmts;
+
+    union{
+        //ND_FOR
+        struct{
+            struct Node *init;
+            struct Node *for_cond;
+            struct Node *iter;
+            struct Node *body;
+        };
+
+        //ND_WHILE
+        //ND_IF
+        struct{
+            struct Node *cond;
+            struct Node *then;
+            struct Node *els;
+        };
+
+        struct{
+            struct Node *lhs;
+            struct Node *rhs;
+        };
+
+        // ND_NUM
+        int val;
+    
+        // ND_LVAR
+        int offset;
+    };
 }Node;
 
 void tokenize();
@@ -120,3 +143,5 @@ extern int count_end;
 // declaration
 void error_at(char *loc, char *msg);
 void error(char *fmt, ...);
+
+#endif

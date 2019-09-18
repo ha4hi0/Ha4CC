@@ -196,57 +196,48 @@ Node *stmt()
 {
     Token *t = tokens->data[pos];
     Node *node;
-    Node *cond=NULL;
-    Node *init = NULL;
-    Node *inc = NULL;
-    Node *els = NULL;
-    Node *then = NULL;
+    node = malloc(sizeof(Node));
     switch(t->ty){
     case TK_IF:
         pos++;
+        node->ty = ND_IF;
         expect_token('(');
-        cond = expr();
+        node->cond = expr();
         expect_token(')');
-        then = stmt();
+        node->then = stmt();
         if(consume(TK_ELS)){
-            els = stmt();
+            node->els = stmt();
         }
-        return new_node_if(cond, then, els);
+        return node;
     case TK_FOR:
         pos++;
+        node->ty = ND_FOR;
         expect_token('(');
         if(!consume(';')){
-            init = expr();
+            node->init = expr();
             expect_token(';');
         }
         if(!consume(';')){
-            cond = expr();
+            node->for_cond = expr();
             expect_token(';');
         }
         if(!consume(';')){
-            inc = expr();
+            node->iter = expr();
         }
         expect_token(')');
-        node = malloc(sizeof(Node));
-        node->ty = ND_FOR;
-        node->cond = cond;
-        node->init = init;
-        node->inc = inc;
-        node->stmts = stmt();
+        node->body = stmt();
         return node;
     case TK_WHILE:
         pos++;
-        node = malloc(sizeof(Node));
-        expect_token('(');
-        cond = expr();
-        expect_token(')');
         node->ty = ND_WHILE;
-        node->cond = cond;
-        node->stmts = stmt();
+        expect_token('(');
+        node->cond = expr();
+        expect_token(')');
+        node->then = stmt();
+        node->els = NULL;
         return node;
     case TK_RETURN:
         pos++;
-        node = malloc(sizeof(Node));
         node->ty = ND_RETURN;
         node->lhs = expr();
         expect_token(';');
