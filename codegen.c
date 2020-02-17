@@ -7,6 +7,11 @@ void gen(Node *node){
         return;
     }
 
+	if(node->ty == ND_BLOCK){
+		gen_block(node);
+		return;
+	}
+
     if(node->ty == ND_WHILE){
         gen_while(node);
         return;
@@ -168,4 +173,14 @@ void gen_while(Node *node)
     gen(node->then);
     printf("    jmp .Lbegin%d\n", Lbegin);
     printf(".Lend%d:\n", Lend);
+}
+
+void gen_block(Node *node)
+{
+	int len = node->stmts->len;
+	for(int i=0; i<len-1; i++){
+		gen((Node *)(node->stmts->data[i]));
+		printf("    pop rax\n");
+	}
+	gen((Node *)(node->stmts->data[len-1]));
 }

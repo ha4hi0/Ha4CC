@@ -9,6 +9,18 @@ int is_alnum(char c)
            (c == '_');
 }
 
+int is_oneletteroperator(char c)
+{
+	char ops[] = {
+        '+' ,'-' ,'*' ,'/' ,')' ,'(' ,'<' ,'>' ,'=', ';', '{', '}'
+	};
+
+	for(int i=0; i<sizeof(ops)/sizeof(char); i++){
+		if(ops[i]==c)return 1;
+	}
+	return 0;
+}
+
 // break string up into tokens
 void tokenize(){
     char *p = user_input;
@@ -103,7 +115,7 @@ void tokenize(){
             continue;
         }
         
-        if(*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == ')' || *p == '(' || *p == '<' || *p == '>' || *p == '=' ||*p == ';'){
+        if(is_oneletteroperator(*p)){
             Token *t = (Token *)malloc(sizeof(Token));
             t->ty = *p;
             t->input = p;
@@ -242,6 +254,14 @@ Node *stmt()
         node->lhs = expr();
         expect_token(';');
         return node;
+	case '{':
+		pos++;
+		node->ty = ND_BLOCK;
+		node->stmts = new_vector();
+		while(!consume('}')){
+			vec_push((Vector *)(node->stmts), stmt());
+		}
+		return node;
     default:
         node = expr();
         expect_token(';');

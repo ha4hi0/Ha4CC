@@ -39,5 +39,8 @@ try 10 "ab=10; if(ab/5==2)return ab; return -10;"
 try 0 " alpha=10;beta=0;if(alpha<beta)beta=alpha;else alpha=beta; return alpha;"
 try 24 "fact=1; for(i=1;fact<10;i=i+1)fact=fact*i;return fact;"
 try 64 "pow=1;while(pow<50)pow=pow*2;return pow;"
+try 2 "i=1;{i=i+1;}return i;"
+try 55 "i=0;sum=0;while(i<11){sum=sum+i;i=i+1;}return sum;"
+try 64 "for(i=1;i<100;i=i*2){if(i>32){return i;}}"
 
 echo OK

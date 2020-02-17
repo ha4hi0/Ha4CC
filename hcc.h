@@ -8,6 +8,27 @@
 #include <stdlib.h>
 #include <string.h>
 
+// container.c
+typedef struct{
+    void **data;
+    int capacity;
+    int len;
+}Vector;
+
+typedef struct{
+    Vector *keys;
+    Vector *vals;
+} Map;
+
+Vector *new_vector();
+void vec_push(Vector *vec, void *elem);
+void expect(int line, int expected, int actual);
+void runtest();
+Map *new_map();
+void map_put(Map *map, char *key, void *val);
+void *map_get(Map *map, char *key);
+
+
 // parse.c
 // value of token type
 enum{
@@ -44,6 +65,7 @@ enum{
     ND_IF,
     ND_FOR,
     ND_WHILE,
+	ND_BLOCK,
 };
 
 // Node type
@@ -66,6 +88,10 @@ typedef struct Node{
             struct Node *then;
             struct Node *els;
         };
+
+		struct{
+			Vector *stmts;
+		};
 
         struct{
             struct Node *lhs;
@@ -103,26 +129,7 @@ void gen_lval(Node *node);
 void gen_if(Node *node);
 void gen_for(Node *node);
 void gen_while(Node *node);
-
-// container.c
-typedef struct{
-    void **data;
-    int capacity;
-    int len;
-}Vector;
-
-typedef struct{
-    Vector *keys;
-    Vector *vals;
-} Map;
-
-Vector *new_vector();
-void vec_push(Vector *vec, void *elem);
-void expect(int line, int expected, int actual);
-void runtest();
-Map *new_map();
-void map_put(Map *map, char *key, void *val);
-void *map_get(Map *map, char *key);
+void gen_block(Node *node);
 
 // main.c
 // program inputted
