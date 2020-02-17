@@ -66,6 +66,7 @@ enum{
     ND_FOR,
     ND_WHILE,
 	ND_BLOCK,
+	ND_FUNCCALL,
 };
 
 // Node type
@@ -89,14 +90,15 @@ typedef struct Node{
             struct Node *els;
         };
 
-		struct{
-			Vector *stmts;
-		};
 
         struct{
             struct Node *lhs;
             struct Node *rhs;
         };
+
+		char *funcname;
+
+		Vector *stmts;
 
         // ND_NUM
         int val;
@@ -130,6 +132,7 @@ void gen_if(Node *node);
 void gen_for(Node *node);
 void gen_while(Node *node);
 void gen_block(Node *node);
+void gen_funccall(Node *node);
 
 // main.c
 // program inputted

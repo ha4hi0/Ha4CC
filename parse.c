@@ -375,8 +375,14 @@ Node *term()
     }else if(((Token *)(tokens->data[pos]))->ty == TK_IDENT){
         char *varname = ((Token *)(tokens->data[pos++]))->name;
         node = malloc(sizeof(Node));
-        node->ty = ND_LVAR;
-        node->offset = (int)map_get(local_var, varname);
+		if(consume('(')){
+			node->ty = ND_FUNCCALL;
+			node->funcname = varname;
+			expect_token(')');
+		}else{
+        	node->ty = ND_LVAR;
+        	node->offset = (int)map_get(local_var, varname);
+		}
     }else{
         error_at(((Token *)(tokens->data[pos]))->input, 
                 "unexpected token: expected a number");

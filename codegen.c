@@ -7,6 +7,11 @@ void gen(Node *node){
         return;
     }
 
+	if(node->ty == ND_FUNCCALL){
+		gen_funccall(node);
+		return;
+	}
+
 	if(node->ty == ND_BLOCK){
 		gen_block(node);
 		return;
@@ -183,4 +188,10 @@ void gen_block(Node *node)
 		printf("    pop rax\n");
 	}
 	gen((Node *)(node->stmts->data[len-1]));
+}
+
+void gen_funccall(Node *node)
+{
+	printf("    call %s\n", node->funcname);
+	printf("    push rax\n");
 }
