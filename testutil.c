@@ -5,3 +5,7 @@ int foo1(){
 int foo2(){
 	return 2;
 }
+
+int foo(int a, int b){
+	return a+b;
+}

@@ -1,6 +1,10 @@
 // codegen.c
 #include "hcc.h"
 
+char *reg_args[6] = {
+	"rdi", "rsi", "rdx", "rcx", "r8", "r9"
+};
+
 void gen(Node *node){
     if(node->ty == ND_IF){
         gen_if(node);
@@ -192,6 +196,19 @@ void gen_block(Node *node)
 
 void gen_funccall(Node *node)
 {
+	for(int i=0; i<node->args->len; i++){
+		gen((Node *)(node->args->data[i]));
+	}
+	for(int i=0; i<node->args->len; i++){
+		printf("    pop %s\n", reg_args[node->args->len-i-1]);
+	}
+	printf("    mov r10, rsp\n");
+	printf("    and rsp, -16\n");
+	printf("    push r10\n");
+	printf("    push r11\n");
 	printf("    call %s\n", node->funcname);
+	printf("    pop r11\n");
+	printf("    pop r10\n");
+	printf("    mov rsp, r10\n");
 	printf("    push rax\n");
 }

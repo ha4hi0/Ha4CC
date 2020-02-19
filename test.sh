@@ -44,5 +44,7 @@ try 2 "i=1;{i=i+1;}return i;"
 try 55 "i=0;sum=0;while(i<11){sum=sum+i;i=i+1;}return sum;"
 try 64 "for(i=1;i<100;i=i*2){if(i>32){return i;}}"
 try 3 "return foo1()+foo2();"
+try 10 "return foo(2, 8);"
+try 55 "return foo(1, foo(2, foo(3, foo(4, foo(5, foo(6, foo(7, foo(8, foo(9, 10)))))))));"
 
 echo OK

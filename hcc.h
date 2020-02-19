@@ -96,7 +96,10 @@ typedef struct Node{
             struct Node *rhs;
         };
 
-		char *funcname;
+		struct{
+			char *funcname;
+			Vector *args;
+		};
 
 		Vector *stmts;
 

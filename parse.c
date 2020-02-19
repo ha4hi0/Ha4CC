@@ -12,7 +12,7 @@ int is_alnum(char c)
 int is_oneletteroperator(char c)
 {
 	char ops[] = {
-        '+' ,'-' ,'*' ,'/' ,')' ,'(' ,'<' ,'>' ,'=', ';', '{', '}'
+        '+' ,'-' ,'*' ,'/' ,')' ,'(' ,'<' ,'>' ,'=', ';', '{', '}', ','
 	};
 
 	for(int i=0; i<sizeof(ops)/sizeof(char); i++){
@@ -143,8 +143,6 @@ void tokenize(){
             t->name[i]='\0';
             t->input = p;
             vec_push(tokens,t);
-            //count_local_var++;
-            //map_put(local_var, t->name, (void *)(count_local_var*8));
             p+=i;
             continue;
         }
@@ -193,7 +191,14 @@ Node *new_node_ident()
 	if(consume('(')){
 		node->ty = ND_FUNCCALL;
 		node->funcname = varname;
-		expect_token(')');
+		node->args = new_vector();
+		if(!consume(')')){
+			vec_push(node->args, (void *)expr());
+			while(!consume(')')){
+				consume(',');
+				vec_push(node->args, (void *)expr());
+			}
+		}
 	}else{
 		node->ty = ND_LVAR;
 		void* ret = map_get(local_var, varname);
@@ -394,16 +399,6 @@ Node *term()
         node = new_node_num(((Token *)(tokens->data[pos++]))->val);
     }else if(((Token *)(tokens->data[pos]))->ty == TK_IDENT){
 		node = new_node_ident();
-//        char *varname = ((Token *)(tokens->data[pos++]))->name;
-//        node = malloc(sizeof(Node));
-//		if(consume('(')){
-//			node->ty = ND_FUNCCALL;
-//			node->funcname = varname;
-//			expect_token(')');
-//		}else{
-//        	node->ty = ND_LVAR;
-//        	node->offset = (int)map_get(local_var, varname);
-//		}
     }else{
         error_at(((Token *)(tokens->data[pos]))->input, 
                 "unexpected token: expected a number");
