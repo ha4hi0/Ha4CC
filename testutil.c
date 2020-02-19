@@ -1,3 +1,5 @@
+#include <stdio.h> 
+
 int foo1(){
 	return 1;
 }

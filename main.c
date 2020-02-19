@@ -29,25 +29,25 @@ int main(int argc, char **argv){
 
     // output the first half of assembly 
 	printf(".intel_syntax noprefix\n");
-	printf(".global main\n");
-	printf("main:\n");
+//	printf(".global main\n");
+//	printf("main:\n");
 
     // prologue
-    printf("    push rbp\n");
-    printf("    mov rbp, rsp\n");
-    printf("    sub rsp, %d*8\n", count_local_var);
+//    printf("    push rbp\n");
+//    printf("    mov rbp, rsp\n");
+//    printf("    sub rsp, %d*8\n", count_local_var);
 
     // generate codes
     for(int i=0; code->data[i]; i++){
         gen(((Node *)(code->data[i])));
-        printf("    pop rax\n");
+        //printf("    pop rax\n");
     }
 
     // return top of stack
     // result of calculation
-    printf("    mov rsp, rbp\n");
-    printf("    pop rbp\n");
-    printf("    ret\n");
+//    printf("    mov rsp, rbp\n");
+//    printf("    pop rbp\n");
+//    printf("    ret\n");
     return 0;
 }
 

@@ -27,6 +27,7 @@ void runtest();
 Map *new_map();
 void map_put(Map *map, char *key, void *val);
 void *map_get(Map *map, char *key);
+int map_len(Map *map);
 
 
 // parse.c
@@ -67,6 +68,7 @@ enum{
     ND_WHILE,
 	ND_BLOCK,
 	ND_FUNCCALL,
+	ND_FUNCDEF,
 };
 
 // Node type
@@ -74,6 +76,14 @@ typedef struct Node{
     int ty;         // Token type
 
     union{
+		//ND_FUNCDEF
+		struct{
+			char *deffuncname;
+			Vector *argname;
+			Map *local_var;
+			struct Node *defbody;
+		};
+
         //ND_FOR
         struct{
             struct Node *init;
@@ -90,12 +100,12 @@ typedef struct Node{
             struct Node *els;
         };
 
-
         struct{
             struct Node *lhs;
             struct Node *rhs;
         };
 
+		//ND_FUNCCALL
 		struct{
 			char *funcname;
 			Vector *args;
@@ -116,6 +126,7 @@ Node *new_node(int ty, Node *lhs, Node *rhs);
 Node *new_node_num(int val);
 Node *new_node_if(Node *cond, Node *then, Node *els);
 void program();
+Node *top_level();
 Node *stmt();
 Node *expr();
 Node *assign();
@@ -136,6 +147,7 @@ void gen_for(Node *node);
 void gen_while(Node *node);
 void gen_block(Node *node);
 void gen_funccall(Node *node);
+void gen_funcdef(Node *node);
 
 // main.c
 // program inputted

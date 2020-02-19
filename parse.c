@@ -24,7 +24,6 @@ int is_oneletteroperator(char c)
 // break string up into tokens
 void tokenize(){
     char *p = user_input;
-    local_var = new_map();
 
     while(*p){
 
@@ -184,6 +183,18 @@ Node *new_node_if(Node *cond, Node *then, Node *els)
     return node;
 }
 
+Node *new_node_block()
+{
+	Node *node = (Node *)malloc(sizeof(Node));
+	expect_token('{');
+	node->ty = ND_BLOCK;
+	node->stmts = new_vector();
+	while(!consume('}')){
+		vec_push((Vector *)(node->stmts), stmt());
+	}
+	return node;
+}
+
 Node *new_node_ident()
 {
 	char *varname = ((Token *)(tokens->data[pos++]))->name;
@@ -224,18 +235,47 @@ int consume(int ty)
 void program()
 {
     while(((Token *)(tokens->data[pos]))->ty!=TK_EOF){
-        vec_push(code, stmt());
+		count_local_var = 0;
+        vec_push(code, top_level());
     }
     vec_push(code, NULL);
+}
+
+Node *top_level()
+{
+	Node *node = (Node *)malloc(sizeof(Node));
+	if(((Token *)(tokens->data[pos]))->ty==TK_IDENT){
+		node->ty = ND_FUNCDEF;
+		node->deffuncname = ((Token *)(tokens->data[pos++]))->name;
+		node->local_var = new_map();
+		node->argname = new_vector();
+		local_var = node->local_var;
+		expect_token('(');
+		if(!consume(')')){
+			char *argname = ((Token *)(tokens->data[pos++]))->name;
+			map_put(local_var, argname, (void *)((++count_local_var)*8));
+			vec_push(node->argname, argname);
+			while(!consume(')')){
+				expect_token(',');
+				argname = ((Token *)(tokens->data[pos++]))->name;
+				map_put(local_var, argname, (void *)((++count_local_var)*8));
+				vec_push(node->argname, argname);
+			}
+		}
+		node->defbody = new_node_block();
+	}else{
+		error("missing TK_IDENT");
+	}
+	return node;
 }
 
 Node *stmt()
 {
     Token *t = tokens->data[pos];
     Node *node;
-    node = malloc(sizeof(Node));
     switch(t->ty){
     case TK_IF:
+    	node = malloc(sizeof(Node));
         pos++;
         node->ty = ND_IF;
         expect_token('(');
@@ -247,6 +287,7 @@ Node *stmt()
         }
         return node;
     case TK_FOR:
+    	node = malloc(sizeof(Node));
         pos++;
         node->ty = ND_FOR;
         expect_token('(');
@@ -265,6 +306,7 @@ Node *stmt()
         node->body = stmt();
         return node;
     case TK_WHILE:
+    	node = malloc(sizeof(Node));
         pos++;
         node->ty = ND_WHILE;
         expect_token('(');
@@ -274,20 +316,16 @@ Node *stmt()
         node->els = NULL;
         return node;
     case TK_RETURN:
+    	node = malloc(sizeof(Node));
         pos++;
         node->ty = ND_RETURN;
         node->lhs = expr();
         expect_token(';');
         return node;
 	case '{':
-		pos++;
-		node->ty = ND_BLOCK;
-		node->stmts = new_vector();
-		while(!consume('}')){
-			vec_push((Vector *)(node->stmts), stmt());
-		}
-		return node;
+		return new_node_block();
     default:
+    	node = malloc(sizeof(Node));
         node = expr();
         expect_token(';');
         return node;

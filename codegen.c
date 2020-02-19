@@ -6,64 +6,60 @@ char *reg_args[6] = {
 };
 
 void gen(Node *node){
-    if(node->ty == ND_IF){
-        gen_if(node);
-        return;
-    }
+	switch(node->ty){
+		case ND_FUNCDEF:
+			gen_funcdef(node);
+			return;
 
-	if(node->ty == ND_FUNCCALL){
-		gen_funccall(node);
-		return;
+		case ND_FUNCCALL:
+			gen_funccall(node);
+			return;
+
+		case ND_IF:
+        	gen_if(node);
+        	return;
+
+		case ND_BLOCK:
+			gen_block(node);
+			return;
+
+		case ND_FOR:
+			gen_for(node);
+			return;
+
+		case ND_WHILE:
+			gen_while(node);
+			return;
+
+		case ND_RETURN:
+        	gen(node->lhs);
+        	printf("    pop rax\n");
+        	printf("    mov rsp, rbp\n");
+        	printf("    pop rbp\n");
+        	printf("    ret\n");
+        	return;
+
+		case ND_NUM:
+        	printf("    push %d\n", node->val);
+        	return;
+
+		case ND_LVAR:
+        	gen_lval(node);
+        	printf("    pop rax\n");
+        	printf("    mov rax, [rax]\n");
+        	printf("    push rax\n");
+        	return;
+
+		case '=':
+        	gen_lval(node->lhs);
+        	gen(node->rhs);
+
+        	printf("    pop rdi\n");
+        	printf("    pop rax\n");
+        	printf("    mov [rax], rdi\n");
+        	printf("    push rdi\n");
+        	return;
 	}
-
-	if(node->ty == ND_BLOCK){
-		gen_block(node);
-		return;
-	}
-
-    if(node->ty == ND_WHILE){
-        gen_while(node);
-        return;
-    }
-
-    if(node->ty == ND_RETURN){
-        gen(node->lhs);
-        printf("    pop rax\n");
-        printf("    mov rsp, rbp\n");
-        printf("    pop rbp\n");
-        printf("    ret\n");
-        return;
-    }
-
-    if(node->ty == ND_NUM){
-        printf("    push %d\n", node->val);
-        return;
-    }
-    
-    if(node->ty == ND_LVAR){
-        gen_lval(node);
-        printf("    pop rax\n");
-        printf("    mov rax, [rax]\n");
-        printf("    push rax\n");
-        return;
-    }
-
-    if(node->ty == ND_FOR){
-        gen_for(node);
-        return;
-    }
-
-    if(node->ty == '='){
-        gen_lval(node->lhs);
-        gen(node->rhs);
-
-        printf("    pop rdi\n");
-        printf("    pop rax\n");
-        printf("    mov [rax], rdi\n");
-        printf("    push rdi\n");
-        return;
-    }
-
     gen(node->lhs);
     gen(node->rhs);
 
@@ -105,7 +101,6 @@ void gen(Node *node){
             printf("    movzb rax, al\n");
             break;
     }
-
     printf("    push rax\n");
 }
 
@@ -211,4 +206,25 @@ void gen_funccall(Node *node)
 	printf("    pop r10\n");
 	printf("    mov rsp, r10\n");
 	printf("    push rax\n");
+}
+void gen_funcdef(Node *node)
+{
+	printf(".global %s\n", node->deffuncname);
+	printf("%s:\n", node->deffuncname);
+	// prologue
+	printf("    push rbp\n");
+	printf("    mov rbp, rsp\n");
+	printf("    sub rsp, %d*8\n", map_len(node->local_var));
+
+	for(int i=0; i<node->argname->len; i++){
+		void *ret=map_get(node->local_var, node->argname->data[i]);
+		printf("    mov [rbp-%d], %s\n", (int)ret, reg_args[i]);
+	}
+
+	gen(node->defbody);
+
+	// epilogue
+	printf("    mov rsp, rbp\n");
+	printf("    pop rbp\n");
+	printf("    ret\n");
 }

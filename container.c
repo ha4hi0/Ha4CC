@@ -54,6 +54,11 @@ void *map_get(Map *map, char *key)
     return NULL;
 }
 
+int map_len(Map *map)
+{
+	return map->keys->len;
+}
+
 void test_vector()
 {
     Vector *vec = new_vector();
