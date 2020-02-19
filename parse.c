@@ -135,17 +135,16 @@ void tokenize(){
 
         if(is_alnum(*p)){
             int i=0;
-            count_local_var++;
             for(;is_alnum(*(p+i));i++);
             Token *t = malloc(sizeof(Token));
             t->ty = TK_IDENT;
             t->name = malloc(sizeof(char)*i);
             strncpy(t->name, p, i);
             t->name[i]='\0';
-            //t->name = strdup(p);
             t->input = p;
             vec_push(tokens,t);
-            map_put(local_var, t->name, (void *)(count_local_var*8));
+            //count_local_var++;
+            //map_put(local_var, t->name, (void *)(count_local_var*8));
             p+=i;
             continue;
         }
@@ -185,6 +184,27 @@ Node *new_node_if(Node *cond, Node *then, Node *els)
     node->then = then;
     node->els = els;
     return node;
+}
+
+Node *new_node_ident()
+{
+	char *varname = ((Token *)(tokens->data[pos++]))->name;
+	Node *node = (Node *)(malloc(sizeof(Node)));
+	if(consume('(')){
+		node->ty = ND_FUNCCALL;
+		node->funcname = varname;
+		expect_token(')');
+	}else{
+		node->ty = ND_LVAR;
+		void* ret = map_get(local_var, varname);
+		if(ret == (NULL)){
+			map_put(local_var, varname, (void *)((++count_local_var)*8));
+			node->offset = count_local_var*8;
+		}else{
+			node->offset = (int)ret;
+		}
+	}
+	return node;
 }
 
 int consume(int ty)
@@ -373,16 +393,17 @@ Node *term()
     if(((Token *)(tokens->data[pos]))->ty == TK_NUM){
         node = new_node_num(((Token *)(tokens->data[pos++]))->val);
     }else if(((Token *)(tokens->data[pos]))->ty == TK_IDENT){
-        char *varname = ((Token *)(tokens->data[pos++]))->name;
-        node = malloc(sizeof(Node));
-		if(consume('(')){
-			node->ty = ND_FUNCCALL;
-			node->funcname = varname;
-			expect_token(')');
-		}else{
-        	node->ty = ND_LVAR;
-        	node->offset = (int)map_get(local_var, varname);
-		}
+		node = new_node_ident();
+//        char *varname = ((Token *)(tokens->data[pos++]))->name;
+//        node = malloc(sizeof(Node));
+//		if(consume('(')){
+//			node->ty = ND_FUNCCALL;
+//			node->funcname = varname;
+//			expect_token(')');
+//		}else{
+//        	node->ty = ND_LVAR;
+//        	node->offset = (int)map_get(local_var, varname);
+//		}
     }else{
         error_at(((Token *)(tokens->data[pos]))->input, 
                 "unexpected token: expected a number");
