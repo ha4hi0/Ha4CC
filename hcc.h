@@ -45,6 +45,7 @@ enum{
     TK_FOR,
     TK_WHILE,
     TK_EOF,       // EOF token
+	TK_INT,
 };
 
 // Token type
@@ -71,6 +72,7 @@ enum{
 	ND_FUNCDEF,
 	ND_ADDR,
 	ND_DEREF,
+	ND_INT,
 };
 
 // Node type

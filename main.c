@@ -71,10 +71,12 @@ Word *new_word(char *name, int len, int val)
 
 void init_reservedwords(Vector *array)
 {
+	// must push in order from the longest
 	vec_push(array, new_word("\0", 0, 0));
 	vec_push(array, new_word("return", 6, TK_RETURN));
 	vec_push(array, new_word("while", 5, TK_WHILE));
 	vec_push(array, new_word("else", 4, TK_ELS));
 	vec_push(array, new_word("for", 3, TK_FOR));
+	vec_push(array, new_word("int", 3, TK_INT));
 	vec_push(array, new_word("if", 2, TK_IF));
 }

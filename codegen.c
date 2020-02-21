@@ -7,6 +7,10 @@ char *reg_args[6] = {
 
 void gen(Node *node){
 	switch(node->ty){
+		case ND_INT:
+			printf("    push 0\n");
+			return;
+
 		case ND_FUNCDEF:
 			gen_funcdef(node);
 			return;

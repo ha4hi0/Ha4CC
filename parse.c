@@ -181,12 +181,10 @@ Node *new_node_ident()
 	}else{
 		node->ty = ND_LVAR;
 		void* ret = map_get(local_var, varname);
-		if(ret == (NULL)){
-			map_put(local_var, varname, (void *)((++count_local_var)*8));
-			node->offset = count_local_var*8;
-		}else{
-			node->offset = (int)ret;
+		if(ret==NULL){
+			error("%s is not defined.", varname);
 		}
+		node->offset = (int)ret;
 	}
 	return node;
 }
@@ -212,28 +210,28 @@ void program()
 Node *top_level()
 {
 	Node *node = (Node *)malloc(sizeof(Node));
-	if(((Token *)(tokens->data[pos]))->ty==TK_IDENT){
-		node->ty = ND_FUNCDEF;
-		node->deffuncname = ((Token *)(tokens->data[pos++]))->name;
-		node->local_var = new_map();
-		node->argname = new_vector();
-		local_var = node->local_var;
-		expect_token('(');
-		if(!consume(')')){
-			char *argname = ((Token *)(tokens->data[pos++]))->name;
+	expect_token(TK_INT);
+	expect_token(TK_IDENT);
+	node->ty = ND_FUNCDEF;
+	node->deffuncname = ((Token *)(tokens->data[pos-1]))->name;
+	node->local_var = new_map();
+	node->argname = new_vector();
+	local_var = node->local_var;
+	expect_token('(');
+	if(!consume(')')){
+		expect_token(TK_INT);
+		char *argname = ((Token *)(tokens->data[pos++]))->name;
+		map_put(local_var, argname, (void *)((++count_local_var)*8));
+		vec_push(node->argname, argname);
+		while(!consume(')')){
+			expect_token(',');
+			expect_token(TK_INT);
+			argname = ((Token *)(tokens->data[pos++]))->name;
 			map_put(local_var, argname, (void *)((++count_local_var)*8));
 			vec_push(node->argname, argname);
-			while(!consume(')')){
-				expect_token(',');
-				argname = ((Token *)(tokens->data[pos++]))->name;
-				map_put(local_var, argname, (void *)((++count_local_var)*8));
-				vec_push(node->argname, argname);
-			}
 		}
-		node->defbody = new_node_block();
-	}else{
-		error("missing TK_IDENT");
 	}
+	node->defbody = new_node_block();
 	return node;
 }
 
@@ -290,6 +288,20 @@ Node *stmt()
         node->lhs = expr();
         expect_token(';');
         return node;
+	case TK_INT:
+		node = malloc(sizeof(Node));
+		pos++;
+		node->ty = ND_INT;
+		char *varname = ((Token *)(tokens->data[pos++]))->name;
+		void* ret = map_get(local_var, varname);
+		if(ret == (NULL)){
+			map_put(local_var, varname, (void *)((++count_local_var)*8));
+			node->offset = count_local_var*8;
+		}else{
+			error_at(((Token *)(tokens->data[pos-1]))->input, "multiple definition");
+		}
+		expect_token(';');
+		return node;
 	case '{':
 		return new_node_block();
     default:
