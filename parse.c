@@ -9,6 +9,17 @@ int is_alnum(char c)
            (c == '_');
 }
 
+
+Word *is_reservedword(char *key)
+{
+	for(int i=1; i<reservedwords->len; i++){
+		if((strncmp(((Word *)(reservedwords->data[i]))->name, key, ((Word *)(reservedwords->data[i]))->len)==0)&&(!is_alnum(key[((Word *)(reservedwords->data[i]))->len]))){
+			return (Word *)(reservedwords->data[i]);
+		}
+	}
+	return NULL;
+}
+
 int is_oneletteroperator(char c)
 {
 	char ops[] = {
@@ -17,6 +28,24 @@ int is_oneletteroperator(char c)
 
 	for(int i=0; i<sizeof(ops)/sizeof(char); i++){
 		if(ops[i]==c)return 1;
+	}
+	return 0;
+}
+
+int is_twoletteroperator(char *c)
+{
+	char *ops[] = {
+		"==", "!=", "<=", ">="
+	};
+
+	int vals[] = {
+		TK_EQ, TK_NE, TK_LE, TK_GE
+	};
+
+	for(int i=0; i<sizeof(vals)/sizeof(int); i++){
+		if(!strncmp(c, ops[i], 2)){
+			return vals[i];
+		}
 	}
 	return 0;
 }
@@ -33,87 +62,26 @@ void tokenize(){
             continue;
         }
 
-        if(!(strncmp(p, "return", 6) || is_alnum(p[6]))){
-            Token *t = (Token *)malloc(sizeof(Token));
-            t->ty = TK_RETURN;
-            t->input = p;
-            p+=6;
-            vec_push(tokens, t);
-            continue;
-        }
+		Word *word=is_reservedword(p);
+		if(word){
+			Token *t = (Token *)malloc(sizeof(Token));
+			t->ty = word->val;
+			t->input = p;
+			p+=word->len;
+			vec_push(tokens, t);
+			continue;
+		}
 
-        if(!(strncmp(p, "while", 5) || is_alnum(p[5]))){
+		int val=is_twoletteroperator(p);
+		if(val){
             Token *t = (Token *)malloc(sizeof(Token));
-            t->ty = TK_WHILE;
-            t->input = p;
-            p+=5;
-            vec_push(tokens, t);
-            continue;
-        }
-
-        if(!(strncmp(p, "else", 4) || is_alnum(p[4]))){
-            Token *t = (Token *)malloc(sizeof(Token));
-            t->ty = TK_ELS;
-            t->input = p;
-            p+=4;
-            vec_push(tokens, t);
-            continue;
-        }
-
-        if(!(strncmp(p, "for", 3) || is_alnum(p[3]))){
-            Token *t = (Token *)malloc(sizeof(Token));
-            t->ty = TK_FOR;
-            t->input = p;
-            vec_push(tokens, t);
-            p+=3;
-            continue;
-        }
-
-        if(!strncmp(p, "==", 2)){
-            Token *t = (Token *)malloc(sizeof(Token));
-            t->ty = TK_EQ;
+            t->ty = val;
             t->input = p;
             vec_push(tokens, t);
             p+=2;
             continue;
-        }
+		}
 
-        if(!strncmp(p, "!=", 2)){
-            Token *t = (Token *)malloc(sizeof(Token));
-            t->ty = TK_NE;
-            t->input = p;
-            vec_push(tokens, t);
-            p+=2;
-            continue;
-        }
-
-        if(!strncmp(p, "<=", 2)){
-            Token *t = (Token *)malloc(sizeof(Token));
-            t->ty = TK_LE;
-            t->input = p;
-            vec_push(tokens, t);
-            p+=2;
-            continue;
-        }
-        
-        if(!strncmp(p, ">=", 2)){
-            Token *t = (Token *)malloc(sizeof(Token));
-            t->ty = TK_GE;
-            t->input = p;
-            vec_push(tokens, t);
-            p+=2;
-            continue;
-        }
-
-        if(!(strncmp(p, "if", 2) || is_alnum(p[2]))){
-            Token *t = (Token *)malloc(sizeof(Token));
-            t->ty = TK_IF;
-            t->input = p;
-            vec_push(tokens, t);
-            p+=2;
-            continue;
-        }
-        
         if(is_oneletteroperator(*p)){
             Token *t = (Token *)malloc(sizeof(Token));
             t->ty = *p;

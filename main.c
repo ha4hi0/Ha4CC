@@ -9,6 +9,8 @@ int count_begin = 0;
 int count_else = 0;
 int count_end = 0;
 Map *local_var;
+Vector *reservedwords;
+void init_reservedwords(Vector *array);
 
 int main(int argc, char **argv){
 	if(argc != 2){
@@ -24,30 +26,19 @@ int main(int argc, char **argv){
     }
     code = new_vector();
     tokens = new_vector();
+	reservedwords = new_vector();
+	init_reservedwords(reservedwords);
     tokenize();
     program();
 
     // output the first half of assembly 
 	printf(".intel_syntax noprefix\n");
-//	printf(".global main\n");
-//	printf("main:\n");
-
-    // prologue
-//    printf("    push rbp\n");
-//    printf("    mov rbp, rsp\n");
-//    printf("    sub rsp, %d*8\n", count_local_var);
 
     // generate codes
     for(int i=0; code->data[i]; i++){
         gen(((Node *)(code->data[i])));
-        //printf("    pop rax\n");
     }
 
-    // return top of stack
-    // result of calculation
-//    printf("    mov rsp, rbp\n");
-//    printf("    pop rbp\n");
-//    printf("    ret\n");
     return 0;
 }
 
@@ -69,3 +60,21 @@ void error_at(char *loc, char *msg){
     exit(1);
 }
 
+Word *new_word(char *name, int len, int val)
+{
+	Word *word = malloc(sizeof(Word));
+	word->name = name;
+	word->len = len;
+	word->val = val;
+	return word;
+}
+
+void init_reservedwords(Vector *array)
+{
+	vec_push(array, new_word("\0", 0, 0));
+	vec_push(array, new_word("return", 6, TK_RETURN));
+	vec_push(array, new_word("while", 5, TK_WHILE));
+	vec_push(array, new_word("else", 4, TK_ELS));
+	vec_push(array, new_word("for", 3, TK_FOR));
+	vec_push(array, new_word("if", 2, TK_IF));
+}

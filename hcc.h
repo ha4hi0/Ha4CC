@@ -123,6 +123,14 @@ typedef struct Node{
     };
 }Node;
 
+// for reserved words
+typedef struct{
+	char *name;
+	int len;
+	int val;
+}Word;
+
+
 void tokenize();
 Node *new_node(int ty, Node *lhs, Node *rhs);
 Node *new_node_num(int val);
@@ -140,6 +148,7 @@ Node *unary();
 Node *term();
 int consume(int ty);
 void expect_token(int ty);
+extern Vector *reservedwords;
 
 // codegen.c
 void gen(Node *node);
