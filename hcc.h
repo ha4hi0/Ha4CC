@@ -69,6 +69,8 @@ enum{
 	ND_BLOCK,
 	ND_FUNCCALL,
 	ND_FUNCDEF,
+	ND_ADDR,
+	ND_DEREF,
 };
 
 // Node type

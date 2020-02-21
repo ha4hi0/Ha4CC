@@ -12,7 +12,7 @@ int is_alnum(char c)
 int is_oneletteroperator(char c)
 {
 	char ops[] = {
-        '+' ,'-' ,'*' ,'/' ,')' ,'(' ,'<' ,'>' ,'=', ';', '{', '}', ','
+        '+' ,'-' ,'*' ,'/' ,')' ,'(' ,'<' ,'>' ,'=', ';', '{', '}', ',', '&'
 	};
 
 	for(int i=0; i<sizeof(ops)/sizeof(char); i++){
@@ -412,11 +412,16 @@ Node *mul()
 
 Node *unary()
 {
+
     if(consume('+')){
         return term();
     }else if(consume('-')){
         return new_node('-', new_node_num(0), term());
-    }
+    }else if(consume('&')){
+		return new_node(ND_ADDR, unary(), (Node *)NULL);
+	}else if(consume('*')){
+		return new_node(ND_DEREF, unary(), (Node *)NULL);
+	}
     return term();
 }
 

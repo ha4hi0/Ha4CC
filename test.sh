@@ -46,17 +46,9 @@ try 64 "main(){for(i=1;i<100;i=i*2){if(i>32){return i;}}}"
 try 3 "main(){return foo1()+foo2();}"
 try 10 "main(){return foo(2, 8);}"
 try 55 "main(){return foo(1, foo(2, foo(3, foo(4, foo(5, foo(6, foo(7, foo(8, foo(9, 10)))))))));}"
-try 233 "fibo(n){
-	if(n==0){
-		return 0;
-	}else if(n==1){
-		return 1;
-	}else{
-		return fibo(n-1)+fibo(n-2);
-	}
-}
-main(){
-	return fibo(13);
-}"
+try 233 "fibo(n){if(n==0){return 0;}else if(n==1){return 1;}else{return fibo(n-1)+fibo(n-2);}}main(){return fibo(13);}"
+try 2 "main(){a=2;b=1;c=0;return hoge(a, b, c);} hoge(b, c, d){return c*(b+d);}"
+try 3 "main(){x=3;y=&x; return *y;}"
+try 3 "main(){x=3; y=5; z=&y+8; return *z;}"
 
 echo OK
