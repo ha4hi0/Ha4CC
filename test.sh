@@ -4,7 +4,7 @@ try(){
     expected="$1"
     input="$2"
 
-    ./hcc "$input" > tmp.s
+    ./Ha4CC "$input" > tmp.s
 	cc -c testutil.c
     gcc -o tmp tmp.s testutil.o
     ./tmp

@@ -1,6 +1,6 @@
 #pragma once
-#ifndef HCC_H
-#define HCC_H
+#ifndef Ha4CC_H
+#define Ha4CC_H
 
 #include <ctype.h>
 #include <stdarg.h>

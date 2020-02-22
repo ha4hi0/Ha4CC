@@ -3,13 +3,13 @@ SRCS=$(wildcard *.c)
 OBJS=$(SRCS:.c=.o)
 
 hcc: $(OBJS)
-	$(CC) -o hcc $(OBJS) $(LDFLAGS)
+	$(CC) -o Ha4CC $(OBJS) $(LDFLAGS)
 
-$(OBJS): hcc.h
+$(OBJS): Ha4CC.h
 
-test: hcc
-	./hcc -test
+test: Ha4CC
+	./Ha4CC -test
 	./test.sh
 
 clean:
-	rm -f hcc *.o *~ tmp*
+	rm -f Ha4CC *.o *~ tmp*

@@ -1,5 +1,5 @@
 // codegen.c
-#include "hcc.h"
+#include "Ha4CC.h"
 
 char *reg_args[6] = {
 	"rdi", "rsi", "rdx", "rcx", "r8", "r9"
