@@ -2,7 +2,7 @@ CFLAGS=-std=c11 -Wall -g -static
 SRCS=$(wildcard *.c)
 OBJS=$(SRCS:.c=.o)
 
-hcc: $(OBJS)
+Ha4CC: $(OBJS)
 	$(CC) -o Ha4CC $(OBJS) $(LDFLAGS)
 
 $(OBJS): Ha4CC.h

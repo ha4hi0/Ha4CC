@@ -179,14 +179,29 @@ Node *new_node_ident()
 			}
 		}
 	}else{
-		node->ty = ND_LVAR;
 		void* ret = map_get(local_var, varname);
 		if(ret==NULL){
 			error("%s is not defined.", varname);
 		}
-		node->offset = (int)ret;
+		node = (Node *)ret;
 	}
 	return node;
+}
+
+Type *parse_type()
+{
+	Type *ret = malloc(sizeof(Type));
+	if(consume(TK_INT)){
+		ret->ty = INT;
+		while(consume('*')){
+			Type *tmp = malloc(sizeof(Type));
+			tmp->ty = PTR;
+			tmp->ptr_to = ret;
+			ret = tmp;
+		}
+		return ret;
+	}
+	return NULL;
 }
 
 int consume(int ty)
@@ -219,15 +234,30 @@ Node *top_level()
 	local_var = node->local_var;
 	expect_token('(');
 	if(!consume(')')){
-		expect_token(TK_INT);
+		Type *ret = parse_type();
+		if(ret == NULL){
+			error("argument must have type specifier.");
+		}
 		char *argname = ((Token *)(tokens->data[pos++]))->name;
-		map_put(local_var, argname, (void *)((++count_local_var)*8));
+		//map_put(local_var, argname, (void *)((++count_local_var)*8));
+		Node *lvar = malloc(sizeof(Node));
+		lvar->ty = ND_LVAR;
+		lvar->offset = (++count_local_var)*8;
+		lvar->type = ret;
+		map_put(local_var, argname, (void *)(lvar));
 		vec_push(node->argname, argname);
 		while(!consume(')')){
 			expect_token(',');
-			expect_token(TK_INT);
+			Type *tmpret = parse_type();
+			if(ret == NULL){
+				error("argument must have type specifier.");
+			}
+			Node *tmp = malloc(sizeof(Node));
 			argname = ((Token *)(tokens->data[pos++]))->name;
-			map_put(local_var, argname, (void *)((++count_local_var)*8));
+			tmp->ty = ND_LVAR;
+			tmp->offset = (++count_local_var)*8;
+			tmp->type = tmpret;
+			map_put(local_var, argname, (void *)(tmp));
 			vec_push(node->argname, argname);
 		}
 	}
@@ -237,8 +267,27 @@ Node *top_level()
 
 Node *stmt()
 {
-    Token *t = tokens->data[pos];
     Node *node;
+	Type *type = parse_type();
+	//fprintf(stderr, "%d\n", type->ty);
+	if(type != NULL){
+		node = malloc(sizeof(Node));
+		char *varname = ((Token *)(tokens->data[pos++]))->name;
+		void* ret = map_get(local_var, varname);
+		if(ret == (NULL)){
+			node->ty = ND_LVAR;
+			node->offset = (++count_local_var)*8;
+			node->type = type;
+			map_put(local_var, varname, (void *)(node));
+		}else{
+			error_at(((Token *)(tokens->data[pos-1]))->input, "multiple definition");
+		}
+		expect_token(';');
+		//return node;
+		//continue;
+		return stmt();
+	}
+    Token *t = tokens->data[pos];
     switch(t->ty){
     case TK_IF:
     	node = malloc(sizeof(Node));
@@ -288,20 +337,6 @@ Node *stmt()
         node->lhs = expr();
         expect_token(';');
         return node;
-	case TK_INT:
-		node = malloc(sizeof(Node));
-		pos++;
-		node->ty = ND_INT;
-		char *varname = ((Token *)(tokens->data[pos++]))->name;
-		void* ret = map_get(local_var, varname);
-		if(ret == (NULL)){
-			map_put(local_var, varname, (void *)((++count_local_var)*8));
-			node->offset = count_local_var*8;
-		}else{
-			error_at(((Token *)(tokens->data[pos-1]))->input, "multiple definition");
-		}
-		expect_token(';');
-		return node;
 	case '{':
 		return new_node_block();
     default:

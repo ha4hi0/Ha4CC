@@ -7,10 +7,10 @@ char *reg_args[6] = {
 
 void gen(Node *node){
 	switch(node->ty){
-		case ND_INT:
-			printf("    push 0\n");
-			return;
-
+//		case ND_INT:
+//			printf("    push 0\n");
+//			return;
+//
 		case ND_FUNCDEF:
 			gen_funcdef(node);
 			return;
@@ -98,17 +98,17 @@ void gen(Node *node){
             printf("    setl al\n");
             printf("    movzb rax, al\n");
             break;
-        case TK_LE:
+        case ND_LE:
             printf("    cmp rax, rdi\n");
             printf("    setle al\n");
             printf("    movzb rax, al\n");
             break;
-        case TK_EQ:
+        case ND_EQ:
             printf("    cmp rax, rdi\n");
             printf("    sete al\n");
             printf("    movzb rax, al\n");
             break;
-        case TK_NE:
+        case ND_NE:
             printf("    cmp rax, rdi\n");
             printf("    setne al\n");
             printf("    movzb rax, al\n");
@@ -119,12 +119,20 @@ void gen(Node *node){
 
 void gen_lval(Node *node)
 {
-    if(node->ty != ND_LVAR){
+	if(node->ty == ND_DEREF){
+		if(node->lhs->type->ty != PTR){
+			error("invalid type argument of unary '*'");
+		}
+		gen(node->lhs);
+	}else if(node->ty == ND_LVAR){
+    	printf("    mov rax, rbp\n");
+    	printf("    sub rax, %d\n", node->offset);
+    	printf("    push rax\n");
+	}
+	else{
         error("lvalue requred as left operand of assignment");
     }
-    printf("    mov rax, rbp\n");
-    printf("    sub rax, %d\n", node->offset);
-    printf("    push rax\n");
+
 }
 
 void gen_if(Node *node)
@@ -231,7 +239,7 @@ void gen_funcdef(Node *node)
 
 	for(int i=0; i<node->argname->len; i++){
 		void *ret=map_get(node->local_var, node->argname->data[i]);
-		printf("    mov [rbp-%d], %s\n", (int)ret, reg_args[i]);
+		printf("    mov [rbp-%d], %s\n", ((Node *)(ret))->offset, reg_args[i]);
 	}
 
 	gen(node->defbody);

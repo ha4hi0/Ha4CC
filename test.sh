@@ -50,5 +50,6 @@ try 233 "int fibo(int n){if(n==0){return 0;}else if(n==1){return 1;}else{return 
 try 2 "int main(){int a; int b; int c; a=2;b=1;c=0;return hoge(a, b, c);}int hoge(int b, int c, int d){return c*(b+d);}"
 try 3 "int main(){int x; x=3;int y; y=&x; return *y;}"
 try 3 "int main(){int x; x=3;int y; y=5;int z; z=&y+8; return *z;}"
+try 3 "int main(){int x; int *y; y=&x; *y=3; return x;}"
 
 echo OK

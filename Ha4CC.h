@@ -29,7 +29,6 @@ void map_put(Map *map, char *key, void *val);
 void *map_get(Map *map, char *key);
 int map_len(Map *map);
 
-
 // parse.c
 // value of token type
 enum{
@@ -72,8 +71,13 @@ enum{
 	ND_FUNCDEF,
 	ND_ADDR,
 	ND_DEREF,
-	ND_INT,
 };
+
+
+typedef struct Type{
+	enum { INT, PTR } ty;
+	struct Type *ptr_to;
+}Type;
 
 // Node type
 typedef struct Node{
@@ -115,13 +119,17 @@ typedef struct Node{
 			Vector *args;
 		};
 
+        // ND_LVAR
+		struct{
+        	int offset;
+			Type *type;
+		};
+
 		Vector *stmts;
 
         // ND_NUM
         int val;
     
-        // ND_LVAR
-        int offset;
     };
 }Node;
 
