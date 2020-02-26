@@ -63,57 +63,123 @@ void gen(Node *node){
         	printf("    mov [rax], rdi\n");
         	printf("    push rdi\n");
         	return;
+
 		case ND_ADDR:
 			gen_lval(node->lhs);
 			return;
+
 		case ND_DEREF:
 			gen(node->lhs);
 			printf("    pop rax\n");
 			printf("    mov rax, [rax]\n");
-			printf("    push rax\n");
-			return;
-	}
-    gen(node->lhs);
-    gen(node->rhs);
+			break;
 
-    printf("    pop rdi\n");
-    printf("    pop rax\n");
-
-    switch(node->ty){
         case '+':
+			if(node->rhs->ty == ND_LVAR){
+				Node *tmp = node->rhs;
+				node->rhs = node->lhs;
+				node->lhs = tmp;
+			}
+    		gen(node->lhs);
+    		gen(node->rhs);
+			if((node->lhs->ty == ND_LVAR)&&(node->lhs->type->ty == PTR)){
+				if(node->rhs->ty==ND_LVAR && node->rhs->type->ty == PTR){
+					error("invalid operands to binary +");
+				}
+				printf("    pop rdi\n");
+				if(node->lhs->type->ptr_to->ty == PTR){
+					printf("    push 8\n");
+				}else if(node->lhs->type->ptr_to->ty == INT){
+					printf("    push 4\n");
+				}
+				printf("    pop rax\n");
+				printf("    imul rdi, rax\n");
+				printf("    push rdi\n");
+			}
+    		printf("    pop rdi\n");
+    		printf("    pop rax\n");
             printf("    add rax, rdi\n");
             break;
+
         case '-':
+    		gen(node->lhs);
+    		gen(node->rhs);
+			if((node->lhs->ty == ND_LVAR)&&(node->lhs->type->ty == PTR)){
+				if(node->rhs->ty==ND_LVAR && node->rhs->type->ty == PTR){
+					error("invalid operands to binary -");
+				}
+				printf("    pop rdi\n");
+				if(node->lhs->type->ptr_to->ty == PTR){
+					printf("    push 8\n");
+				}else if(node->lhs->type->ptr_to->ty == INT){
+					printf("    push 4\n");
+				}
+				printf("    pop rax\n");
+				printf("    imul rdi, rax\n");
+				printf("    push rdi\n");
+			}
+    		printf("    pop rdi\n");
+    		printf("    pop rax\n");
             printf("    sub rax, rdi\n");
             break;
+
         case '*':
-            printf("    imul rdi\n");
+    		gen(node->lhs);
+    		gen(node->rhs);
+    		printf("    pop rdi\n");
+    		printf("    pop rax\n");
+            printf("    imul rax, rdi\n");
             break;
+
         case '/':
+    		gen(node->lhs);
+    		gen(node->rhs);
+    		printf("    pop rdi\n");
+    		printf("    pop rax\n");
             printf("    cqo\n");
             printf("    idiv rdi\n");
             break;
+
         case '<':
+    		gen(node->lhs);
+    		gen(node->rhs);
+    		printf("    pop rdi\n");
+    		printf("    pop rax\n");
             printf("    cmp rax, rdi\n");
             printf("    setl al\n");
             printf("    movzb rax, al\n");
             break;
+
         case ND_LE:
+    		gen(node->lhs);
+    		gen(node->rhs);
+    		printf("    pop rdi\n");
+    		printf("    pop rax\n");
             printf("    cmp rax, rdi\n");
             printf("    setle al\n");
             printf("    movzb rax, al\n");
             break;
+
         case ND_EQ:
+    		gen(node->lhs);
+    		gen(node->rhs);
+    		printf("    pop rdi\n");
+    		printf("    pop rax\n");
             printf("    cmp rax, rdi\n");
             printf("    sete al\n");
             printf("    movzb rax, al\n");
             break;
+
         case ND_NE:
+    		gen(node->lhs);
+    		gen(node->rhs);
+    		printf("    pop rdi\n");
+    		printf("    pop rax\n");
             printf("    cmp rax, rdi\n");
             printf("    setne al\n");
             printf("    movzb rax, al\n");
             break;
-    }
+	}
     printf("    push rax\n");
 }
 
