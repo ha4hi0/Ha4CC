@@ -1,6 +1,8 @@
 // parse.c
 #include "Ha4CC.h"
 
+int pos;
+
 int is_alnum(char c)
 {
     return ('a' <= c && c <= 'z') ||
@@ -12,7 +14,7 @@ int is_alnum(char c)
 
 Word *is_reservedword(char *key)
 {
-	for(int i=1; i<reservedwords->len; i++){
+	for(int i=0; i<reservedwords->len; i++){
 		if((strncmp(((Word *)(reservedwords->data[i]))->name, key, ((Word *)(reservedwords->data[i]))->len)==0)&&(!is_alnum(key[((Word *)(reservedwords->data[i]))->len]))){
 			return (Word *)(reservedwords->data[i]);
 		}
@@ -379,20 +381,21 @@ Node *equality()
 Node *relational()
 {
     Node *node = add();
+	int ND;
 
-    while(1){
-        if(consume('<')){
-            node = new_node('<', node, add());
-        }else if(consume('>')){
-            node = new_node('<', add(), node);
-        }else if(consume(TK_LE)){
-            node = new_node(ND_LE, node, add());
-        }else if(consume(TK_GE)){
-            node = new_node(ND_LE, add(), node);
-        }else{
-            return node;
-        }
-    }
+	while(1){
+	    if(consume('<')){
+			node = new_node('<', node, add());
+	    }else if(consume('>')){
+			node = new_node('>', node, add());
+	    }else if(consume(TK_LE)){
+			node = new_node(ND_LE, node, add());
+	    }else if(consume(TK_GE)){
+	        node = new_node(ND_GE, node, add());
+	    }else{
+	        return node;
+	    }
+	}
 }
 
 Node *add()

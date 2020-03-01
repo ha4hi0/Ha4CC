@@ -1,5 +1,6 @@
 // container.c
 #include "Ha4CC.h"
+#include <assert.h>
 
 // Vector
 Vector *new_vector()
@@ -11,13 +12,22 @@ Vector *new_vector()
     return vec;
 }
 
-void vec_push(Vector *vec, void *elem)
+void *vec_push(Vector *vec, void *elem)
 {
     if(vec->capacity == vec->len){
         vec->capacity *= 2;
         vec->data = realloc(vec->data, sizeof(void *)*vec->capacity);
     }
     vec->data[vec->len++] = elem;
+	elem;
+}
+
+void *vec_set(Vector *vec, int idx, void *elem)
+{
+	assert(vec != NULL);
+	assert(vec->len > idx);
+	vec->data[idx] = elem;
+	return elem;
 }
 
 // test

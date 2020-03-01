@@ -1,11 +1,9 @@
+COMPILER=gcc
 CFLAGS=-std=c11 -Wall -g -static
-SRCS=$(wildcard *.c)
-OBJS=$(SRCS:.c=.o)
+SRCS=codegen.c  container.c  main.c  parse.c analyze.c
 
-Ha4CC: $(OBJS)
-	$(CC) -o Ha4CC $(OBJS) $(LDFLAGS)
-
-$(OBJS): Ha4CC.h
+Ha4CC: $(SRCS)
+	$(COMPILER) -o Ha4CC $(SRCS) $(LDFLAGS)
 
 test: Ha4CC
 	./Ha4CC -test

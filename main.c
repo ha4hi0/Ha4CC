@@ -3,7 +3,6 @@
 char *user_input;
 Vector *tokens;
 Vector *code;
-int pos;
 int count_local_var = 0;
 int count_begin = 0;
 int count_else = 0;
@@ -24,12 +23,14 @@ int main(int argc, char **argv){
         runtest();
         return 0;
     }
+
     code = new_vector();
     tokens = new_vector();
 	reservedwords = new_vector();
 	init_reservedwords(reservedwords);
     tokenize();
     program();
+	code = analyze(code);
 
     // output the first half of assembly 
 	printf(".intel_syntax noprefix\n");
@@ -72,7 +73,6 @@ Word *new_word(char *name, int len, int val)
 void init_reservedwords(Vector *array)
 {
 	// must push in order from the longest
-	vec_push(array, new_word("\0", 0, 0));
 	vec_push(array, new_word("return", 6, TK_RETURN));
 	vec_push(array, new_word("while", 5, TK_WHILE));
 	vec_push(array, new_word("else", 4, TK_ELS));

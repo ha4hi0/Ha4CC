@@ -21,7 +21,8 @@ typedef struct{
 } Map;
 
 Vector *new_vector();
-void vec_push(Vector *vec, void *elem);
+void *vec_push(Vector *vec, void *elem);
+void *vec_set(Vector *vec, int idx, void *elem);
 void expect(int line, int expected, int actual);
 void runtest();
 Map *new_map();
@@ -50,8 +51,10 @@ enum{
 // Token type
 typedef struct{
     int ty;         // Token type
-    int val;        // value of TK_NUM token
-    char *name;     // name of TK_IDENT token
+	union{
+    	int val;        // value of TK_NUM token
+    	char *name;     // name of TK_IDENT token
+	};
     char *input;    // Token strings for error message
 }Token;
 
@@ -63,6 +66,7 @@ enum{
     ND_EQ,
     ND_NE,
     ND_LE,
+	ND_GE,
     ND_IF,
     ND_FOR,
     ND_WHILE,
@@ -82,6 +86,7 @@ typedef struct Type{
 // Node type
 typedef struct Node{
     int ty;         // Token type
+	Type *type;     // type of return value (!= ty)
 
     union{
 		//ND_FUNCDEF
@@ -122,7 +127,6 @@ typedef struct Node{
         // ND_LVAR
 		struct{
         	int offset;
-			Type *type;
 		};
 
 		Vector *stmts;
@@ -169,6 +173,11 @@ void gen_while(Node *node);
 void gen_block(Node *node);
 void gen_funccall(Node *node);
 void gen_funcdef(Node *node);
+
+// analyze.c
+Vector *analyze(Vector *code);
+Node *analyze_detail(Node *node);
+Type *type_int();
 
 // main.c
 // program inputted
