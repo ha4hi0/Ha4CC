@@ -30,6 +30,16 @@ void *vec_set(Vector *vec, int idx, void *elem)
 	return elem;
 }
 
+void *vec_erase(Vector *vec, int idx)
+{
+	assert(vec != NULL);
+	assert(vec->len > idx);
+	for(int i=idx; i < vec->len-1; i++){
+		vec->data[i] = vec->data[i+1];
+	}
+	vec->len--;
+}
+
 // test
 void expect(int line, int expected, int actual)
 {

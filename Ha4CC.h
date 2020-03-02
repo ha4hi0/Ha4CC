@@ -23,6 +23,7 @@ typedef struct{
 Vector *new_vector();
 void *vec_push(Vector *vec, void *elem);
 void *vec_set(Vector *vec, int idx, void *elem);
+void *vec_erase(Vector *vec, int idx);
 void expect(int line, int expected, int actual);
 void runtest();
 Map *new_map();
@@ -75,6 +76,7 @@ enum{
 	ND_FUNCDEF,
 	ND_ADDR,
 	ND_DEREF,
+	ND_EMPTY,
 };
 
 enum TY{

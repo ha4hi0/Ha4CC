@@ -53,4 +53,5 @@ try 3 "int main(){int x; x=3;int y; y=5;int z; z=&y+8; return *z;}"
 try 3 "int main(){int x; int *y; y=&x; *y=3; return x;}"
 try 8 "int main(){int *p; alloc4(&p, 1, 2, 4, 8); int *q; q=p+3; return *q;}"
 try 6 "int main(){int *p; alloc4(&p, 0, 1, 2, 3); int i;for(i=0; i<4; i=i+1){*p=4+i; p=p+1;}return *(p-2);}"
+try 0 "int main(){;int i;i=0;;;return i;;;}"
 echo OK

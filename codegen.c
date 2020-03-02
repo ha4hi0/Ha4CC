@@ -7,6 +7,9 @@ char *reg_args[6] = {
 
 void gen(Node *node){
 	switch(node->ty){
+		case ND_EMPTY:
+			return;
+
 		case ND_FUNCDEF:
 			gen_funcdef(node);
 			return;
@@ -266,7 +269,9 @@ void gen_block(Node *node)
 {
 	int len = node->stmts->len;
 	for(int i=0; i<len-1; i++){
-		gen((Node *)(node->stmts->data[i]));
+		Node *tmp = (Node *)(node->stmts->data[i]);
+		if(tmp->ty == ND_EMPTY)continue;
+		gen(tmp);
 		printf("    pop rax\n");
 	}
 	gen((Node *)(node->stmts->data[len-1]));

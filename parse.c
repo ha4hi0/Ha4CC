@@ -284,8 +284,6 @@ Node *stmt()
 			error_at(((Token *)(tokens->data[pos-1]))->input, "multiple definition");
 		}
 		expect_token(';');
-		//return node;
-		//continue;
 		return stmt();
 	}
     Token *t = tokens->data[pos];
@@ -340,6 +338,11 @@ Node *stmt()
         return node;
 	case '{':
 		return new_node_block();
+	case ';':
+		pos++;
+		node = malloc(sizeof(Node));
+		node->ty = ND_EMPTY;
+		return node;
     default:
     	node = malloc(sizeof(Node));
         node = expr();
