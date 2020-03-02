@@ -77,10 +77,15 @@ enum{
 	ND_DEREF,
 };
 
+enum TY{
+	TY_INT,
+	TY_PTR,
+};
 
 typedef struct Type{
-	enum { INT, PTR } ty;
+	enum TY ty;
 	struct Type *ptr_to;
+	int byte;
 }Type;
 
 // Node type
@@ -178,6 +183,7 @@ void gen_funcdef(Node *node);
 Vector *analyze(Vector *code);
 Node *analyze_detail(Node *node);
 Type *type_int();
+Type *ptr2type(Type *type);
 
 // main.c
 // program inputted

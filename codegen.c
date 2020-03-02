@@ -78,14 +78,14 @@ void gen(Node *node){
 			}
     		gen(node->lhs);
     		gen(node->rhs);
-			if((node->lhs->ty == ND_LVAR)&&(node->lhs->type->ty == PTR)){
-				if(node->rhs->ty==ND_LVAR && node->rhs->type->ty == PTR){
+			if((node->lhs->ty == ND_LVAR)&&(node->lhs->type->ty == TY_PTR)){
+				if(node->rhs->ty==ND_LVAR && node->rhs->type->ty == TY_PTR){
 					error("invalid operands to binary +");
 				}
 				printf("    pop rdi\n");
-				if(node->lhs->type->ptr_to->ty == PTR){
+				if(node->lhs->type->ptr_to->ty == TY_PTR){
 					printf("    push 8\n");
-				}else if(node->lhs->type->ptr_to->ty == INT){
+				}else if(node->lhs->type->ptr_to->ty == TY_INT){
 					printf("    push 4\n");
 				}
 				printf("    pop rax\n");
@@ -100,14 +100,14 @@ void gen(Node *node){
         case '-':
     		gen(node->lhs);
     		gen(node->rhs);
-			if((node->lhs->ty == ND_LVAR)&&(node->lhs->type->ty == PTR)){
-				if(node->rhs->ty==ND_LVAR && node->rhs->type->ty == PTR){
+			if((node->lhs->ty == ND_LVAR)&&(node->lhs->type->ty == TY_PTR)){
+				if(node->rhs->ty==ND_LVAR && node->rhs->type->ty == TY_PTR){
 					error("invalid operands to binary -");
 				}
 				printf("    pop rdi\n");
-				if(node->lhs->type->ptr_to->ty == PTR){
+				if(node->lhs->type->ptr_to->ty == TY_PTR){
 					printf("    push 8\n");
-				}else if(node->lhs->type->ptr_to->ty == INT){
+				}else if(node->lhs->type->ptr_to->ty == TY_INT){
 					printf("    push 4\n");
 				}
 				printf("    pop rax\n");
@@ -182,7 +182,7 @@ void gen(Node *node){
 void gen_lval(Node *node)
 {
 	if(node->ty == ND_DEREF){
-		if(node->lhs->type->ty != PTR){
+		if(node->lhs->type->ty != TY_PTR){
 			error("invalid type argument of unary '*'");
 		}
 		gen(node->lhs);

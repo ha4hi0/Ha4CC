@@ -192,13 +192,12 @@ Node *new_node_ident()
 
 Type *parse_type()
 {
-	Type *ret = malloc(sizeof(Type));
+	Type *ret;
 	if(consume(TK_INT)){
-		ret->ty = INT;
+		ret = type_int();
 		while(consume('*')){
-			Type *tmp = malloc(sizeof(Type));
-			tmp->ty = PTR;
-			tmp->ptr_to = ret;
+			Type *tmp;
+			tmp = ptr2type(ret);
 			ret = tmp;
 		}
 		return ret;

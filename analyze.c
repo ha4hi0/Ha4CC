@@ -11,16 +11,18 @@ void swap(Node **lhs, Node **rhs)
 Type *type_int()
 {
 	Type *ret = malloc(sizeof(Type));
-	ret->ty = INT;
+	ret->ty = TY_INT;
 	ret->ptr_to = NULL;
+	ret->byte = 8;
 	return ret;
 }
 
 Type *ptr2type(Type *type)
 {
 	Type *ret = malloc(sizeof(Type));
-	ret->ty = INT;
+	ret->ty = TY_PTR;
 	ret->ptr_to = type;
+	ret->byte = 4;
 	return ret;
 }
 
