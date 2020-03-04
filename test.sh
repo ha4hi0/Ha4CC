@@ -54,4 +54,7 @@ try 3 "int main(){int x; int *y; y=&x; *y=3; return x;}" #
 try 8 "int main(){int *p; alloc4(&p, 1, 2, 4, 8); int *q; q=p+3; return *q;}"
 try 6 "int main(){int *p; alloc4(&p, 0, 1, 2, 3); int i;for(i=0; i<4; i=i+1){*p=4+i; p=p+1;}return *(p-2);}"
 try 0 "int main(){;int i;i=0;;;return i;;;}"
+try 4 "int main(){return sizeof(0);}"
+try 4 "int main(){int **x; return sizeof(*(*(x+4)-2));}"
+try 32 "int main(){int x; x = sizeof(x); return sizeof(&x)*sizeof(x);}"
 echo OK

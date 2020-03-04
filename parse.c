@@ -438,8 +438,9 @@ Node *mul()
 
 Node *unary()
 {
-
-    if(consume('+')){
+	if(consume(TK_SIZEOF)){
+		return new_node(ND_SIZEOF, unary(), (Node *)NULL);
+	}else if(consume('+')){
         return term();
     }else if(consume('-')){
         return new_node('-', new_node_num(0), term());

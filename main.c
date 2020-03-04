@@ -74,6 +74,7 @@ void init_reservedwords(Vector *array)
 {
 	// must push in order from the longest
 	vec_push(array, new_word("return", 6, TK_RETURN));
+	vec_push(array, new_word("sizeof", 6, TK_SIZEOF));
 	vec_push(array, new_word("while", 5, TK_WHILE));
 	vec_push(array, new_word("else", 4, TK_ELS));
 	vec_push(array, new_word("for", 3, TK_FOR));

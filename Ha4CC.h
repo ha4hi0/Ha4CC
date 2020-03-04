@@ -47,6 +47,7 @@ enum{
     TK_WHILE,
     TK_EOF,       // EOF token
 	TK_INT,
+	TK_SIZEOF,
 };
 
 // Token type
@@ -77,6 +78,7 @@ enum{
 	ND_ADDR,
 	ND_DEREF,
 	ND_EMPTY,
+	ND_SIZEOF,
 };
 
 enum TY{
@@ -92,7 +94,7 @@ typedef struct Type{
 
 // Node type
 typedef struct Node{
-    int ty;         // Token type
+    int ty;         // Node type
 	Type *type;     // type of return value (!= ty)
 
     union{

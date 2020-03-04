@@ -150,6 +150,14 @@ Node *analyze_detail(Node *node)
 			node->lhs = analyze_detail(node->lhs);
 			node->type = node->lhs->type->ptr_to;
 			break;
+		case ND_SIZEOF:
+		{
+			node->lhs = analyze_detail(node->lhs);
+			int tmp = node->lhs->type->byte;
+			node->type = type_int();
+			node->ty = ND_NUM;
+			node->val = tmp;
+		}
 	}
 	return node;
 }
