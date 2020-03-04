@@ -186,6 +186,8 @@ Vector *analyze(Vector *code);
 Node *analyze_detail(Node *node);
 Type *type_int();
 Type *ptr2type(Type *type);
+int match_type(Node *node, enum TY ty);
+int match_type2(Node *lhs, Node *rhs, enum TY lty, enum TY rty);
 
 // main.c
 // program inputted

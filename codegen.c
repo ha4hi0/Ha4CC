@@ -1,9 +1,24 @@
 // codegen.c
 #include "Ha4CC.h"
 
-char *reg_args[6] = {
-	"rdi", "rsi", "rdx", "rcx", "r8", "r9"
-};
+const char *reg_name(int byte, int i)
+{
+	const char *rreg[] = {
+		"rax", "rdi", "rsi", "rdx", "rcx", "r8", "r9"
+	};
+	
+	const char *ereg[] = {
+		"eax", "edi", "esi", "edx", "ecx", "r8d", "r9d"
+	};
+
+	switch(byte){
+		case 4:
+			return ereg[i];
+			
+		case 8:
+			return rreg[i];
+	}
+}
 
 void gen(Node *node){
 	switch(node->ty){
@@ -36,7 +51,7 @@ void gen(Node *node){
 
 		case ND_RETURN:
         	gen(node->lhs);
-        	printf("    pop rax\n");
+        	printf("    pop %s\n", reg_name(8, 0));
         	printf("    mov rsp, rbp\n");
         	printf("    pop rbp\n");
         	printf("    ret\n");
@@ -59,7 +74,7 @@ void gen(Node *node){
 
         	printf("    pop rdi\n");
         	printf("    pop rax\n");
-        	printf("    mov [rax], rdi\n");
+        	printf("    mov [rax], %s\n", reg_name(node->lhs->type->byte, 1));
         	printf("    push rdi\n");
         	return;
 
@@ -74,52 +89,35 @@ void gen(Node *node){
 			break;
 
         case '+':
-			if(node->rhs->ty == ND_LVAR){
-				Node *tmp = node->rhs;
-				node->rhs = node->lhs;
-				node->lhs = tmp;
-			}
     		gen(node->lhs);
     		gen(node->rhs);
-			if((node->lhs->ty == ND_LVAR)&&(node->lhs->type->ty == TY_PTR)){
-				if(node->rhs->ty==ND_LVAR && node->rhs->type->ty == TY_PTR){
-					error("invalid operands to binary +");
-				}
-				printf("    pop rdi\n");
-				if(node->lhs->type->ptr_to->ty == TY_PTR){
-					printf("    push 8\n");
-				}else if(node->lhs->type->ptr_to->ty == TY_INT){
-					printf("    push 4\n");
-				}
+			printf("    pop rdi\n");
+			if(match_type(node, TY_PTR)){
+				printf("    push %d\n", node->type->ptr_to->byte);
 				printf("    pop rax\n");
 				printf("    imul rdi, rax\n");
-				printf("    push rdi\n");
 			}
-    		printf("    pop rdi\n");
-    		printf("    pop rax\n");
-            printf("    add rax, rdi\n");
+			printf("    pop rax\n");
+			printf("    add rax, rdi\n");
             break;
 
         case '-':
     		gen(node->lhs);
     		gen(node->rhs);
-			if((node->lhs->ty == ND_LVAR)&&(node->lhs->type->ty == TY_PTR)){
-				if(node->rhs->ty==ND_LVAR && node->rhs->type->ty == TY_PTR){
-					error("invalid operands to binary -");
-				}
-				printf("    pop rdi\n");
-				if(node->lhs->type->ptr_to->ty == TY_PTR){
-					printf("    push 8\n");
-				}else if(node->lhs->type->ptr_to->ty == TY_INT){
-					printf("    push 4\n");
-				}
+			printf("    pop rdi\n");
+			if(match_type2(node->lhs, node->rhs, TY_PTR, TY_INT)){
+				printf("    push %d\n", node->type->ptr_to->byte);
 				printf("    pop rax\n");
 				printf("    imul rdi, rax\n");
-				printf("    push rdi\n");
 			}
-    		printf("    pop rdi\n");
     		printf("    pop rax\n");
             printf("    sub rax, rdi\n");
+			if(match_type2(node->lhs, node->rhs, TY_PTR, TY_PTR)){
+				printf("    push %d\n", node->type->ptr_to->byte);
+				printf("    pop rdi\n");
+				printf("    cqo\n");
+				printf("    div rdi\n");
+			}
             break;
 
         case '*':
@@ -127,7 +125,7 @@ void gen(Node *node){
     		gen(node->rhs);
     		printf("    pop rdi\n");
     		printf("    pop rax\n");
-            printf("    imul rax, rdi\n");
+            printf("    imul eax, edi\n");
             break;
 
         case '/':
@@ -135,8 +133,8 @@ void gen(Node *node){
     		gen(node->rhs);
     		printf("    pop rdi\n");
     		printf("    pop rax\n");
-            printf("    cqo\n");
-            printf("    idiv rdi\n");
+			printf("    cltd\n");
+            printf("    idiv edi\n");
             break;
 
         case '<':
@@ -144,9 +142,9 @@ void gen(Node *node){
     		gen(node->rhs);
     		printf("    pop rdi\n");
     		printf("    pop rax\n");
-            printf("    cmp rax, rdi\n");
+            printf("    cmp %s, %s\n", reg_name(node->lhs->type->byte, 0), reg_name(node->lhs->type->byte, 1));
             printf("    setl al\n");
-            printf("    movzb rax, al\n");
+            printf("    movzb eax, al\n");
             break;
 
         case ND_LE:
@@ -154,9 +152,9 @@ void gen(Node *node){
     		gen(node->rhs);
     		printf("    pop rdi\n");
     		printf("    pop rax\n");
-            printf("    cmp rax, rdi\n");
+            printf("    cmp %s, %s\n", reg_name(node->lhs->type->byte, 0), reg_name(node->lhs->type->byte, 1));
             printf("    setle al\n");
-            printf("    movzb rax, al\n");
+            printf("    movzb eax, al\n");
             break;
 
         case ND_EQ:
@@ -164,9 +162,9 @@ void gen(Node *node){
     		gen(node->rhs);
     		printf("    pop rdi\n");
     		printf("    pop rax\n");
-            printf("    cmp rax, rdi\n");
+            printf("    cmp %s, %s\n", reg_name(node->lhs->type->byte, 0), reg_name(node->lhs->type->byte, 1));
             printf("    sete al\n");
-            printf("    movzb rax, al\n");
+            printf("    movzb eax, al\n");
             break;
 
         case ND_NE:
@@ -174,9 +172,9 @@ void gen(Node *node){
     		gen(node->rhs);
     		printf("    pop rdi\n");
     		printf("    pop rax\n");
-            printf("    cmp rax, rdi\n");
+            printf("    cmp %s, %s\n", reg_name(node->lhs->type->byte, 0), reg_name(node->lhs->type->byte, 1));
             printf("    setne al\n");
-            printf("    movzb rax, al\n");
+            printf("    movzb eax, al\n");
             break;
 	}
     printf("    push rax\n");
@@ -283,7 +281,7 @@ void gen_funccall(Node *node)
 		gen((Node *)(node->args->data[i]));
 	}
 	for(int i=0; i<node->args->len; i++){
-		printf("    pop %s\n", reg_args[node->args->len-i-1]);
+		printf("    pop %s\n", reg_name(8, node->args->len-i));
 	}
 	printf("    mov r10, rsp\n");
 	printf("    and rsp, -16\n");
@@ -302,11 +300,15 @@ void gen_funcdef(Node *node)
 	// prologue
 	printf("    push rbp\n");
 	printf("    mov rbp, rsp\n");
-	printf("    sub rsp, %d*8\n", map_len(node->local_var));
+	if(map_len(node->local_var) == 0){
+		printf("    sub rsp, 0\n");
+	}else{
+		printf("    sub rsp, %d\n", ((Node *)(node->local_var->vals->data[map_len(node->local_var)-1]))->offset);
+	}
 
 	for(int i=0; i<node->argname->len; i++){
-		void *ret=map_get(node->local_var, node->argname->data[i]);
-		printf("    mov [rbp-%d], %s\n", ((Node *)(ret))->offset, reg_args[i]);
+		Node *ret=(Node *)map_get(node->local_var, node->argname->data[i]);
+		printf("    mov [rbp-%d], %s\n", ret->offset, reg_name(ret->type->byte, i+1));
 	}
 
 	gen(node->defbody);

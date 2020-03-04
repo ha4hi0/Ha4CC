@@ -13,7 +13,7 @@ Type *type_int()
 	Type *ret = malloc(sizeof(Type));
 	ret->ty = TY_INT;
 	ret->ptr_to = NULL;
-	ret->byte = 8;
+	ret->byte = 4;
 	return ret;
 }
 
@@ -22,7 +22,7 @@ Type *ptr2type(Type *type)
 	Type *ret = malloc(sizeof(Type));
 	ret->ty = TY_PTR;
 	ret->ptr_to = type;
-	ret->byte = 4;
+	ret->byte = 8;
 	return ret;
 }
 
@@ -34,6 +34,16 @@ Vector *analyze(Vector *code)
 	return code;
 }
 
+int match_type(Node *node, enum TY ty)
+{
+	return (node->type->ty == ty);
+}
+
+int match_type2(Node *lhs, Node *rhs, enum TY lty, enum TY rty)
+{
+	return (match_type(lhs, lty) && match_type(rhs, rty));
+}
+
 Node *analyze_detail(Node *node)
 {
 	if(node == NULL) return NULL;
@@ -41,12 +51,31 @@ Node *analyze_detail(Node *node)
 		case '+' :
 			node->rhs = analyze_detail(node->rhs);
 			node->lhs = analyze_detail(node->lhs);
-			node->type = node->lhs->type; // TODO: deny invalid syntax
+			if(match_type2(node->lhs, node->rhs, TY_PTR, TY_PTR)){
+				error("invalid operand to binary +");
+			}
+			if(match_type2(node->lhs, node->rhs, TY_INT, TY_PTR)){
+				swap(&node->lhs, &node->rhs);
+			}
+			if(match_type2(node->lhs, node->rhs, TY_PTR, TY_INT)){
+				node->type = node->lhs->type;
+			}else{
+				node->type = node->lhs->type;
+			}
 			break;
 		case '-' :
 			node->rhs = analyze_detail(node->rhs);
 			node->lhs = analyze_detail(node->lhs);
-			node->type = node->lhs->type; // TODO: deny invalid syntax
+			if(match_type2(node->lhs, node->rhs, TY_INT, TY_PTR)){
+				error("int - ptr is not allowed");
+			}
+			if(match_type2(node->lhs, node->rhs, TY_PTR, TY_PTR)){
+				node->type = type_int();
+			}else if(match_type2(node->lhs, node->rhs, TY_PTR, TY_INT)){
+				node->type = node->lhs->type;
+			}else{
+				node->type = node->lhs->type;
+			}
 			break;
 		case '*' :
 		case '/' :

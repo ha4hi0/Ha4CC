@@ -24,7 +24,7 @@ Word *is_reservedword(char *key)
 
 int is_oneletteroperator(char c)
 {
-	char ops[] = {
+	const char ops[] = {
         '+' ,'-' ,'*' ,'/' ,')' ,'(' ,'<' ,'>' ,'=', ';', '{', '}', ',', '&'
 	};
 
@@ -36,7 +36,7 @@ int is_oneletteroperator(char c)
 
 int is_twoletteroperator(char *c)
 {
-	char *ops[] = {
+	const char *ops[] = {
 		"==", "!=", "<=", ">="
 	};
 
@@ -243,7 +243,9 @@ Node *top_level()
 		//map_put(local_var, argname, (void *)((++count_local_var)*8));
 		Node *lvar = malloc(sizeof(Node));
 		lvar->ty = ND_LVAR;
-		lvar->offset = (++count_local_var)*8;
+		//lvar->offset = (++count_local_var)*8;
+		count_local_var += ret->byte;
+		lvar->offset = count_local_var;
 		lvar->type = ret;
 		map_put(local_var, argname, (void *)(lvar));
 		vec_push(node->argname, argname);
@@ -256,7 +258,9 @@ Node *top_level()
 			Node *tmp = malloc(sizeof(Node));
 			argname = ((Token *)(tokens->data[pos++]))->name;
 			tmp->ty = ND_LVAR;
-			tmp->offset = (++count_local_var)*8;
+			//tmp->offset = (++count_local_var)*8;
+			count_local_var += tmpret->byte;
+			tmp->offset = count_local_var;
 			tmp->type = tmpret;
 			map_put(local_var, argname, (void *)(tmp));
 			vec_push(node->argname, argname);
@@ -277,7 +281,9 @@ Node *stmt()
 		void* ret = map_get(local_var, varname);
 		if(ret == (NULL)){
 			node->ty = ND_LVAR;
-			node->offset = (++count_local_var)*8;
+			//node->offset = (++count_local_var)*8;
+			count_local_var += type->byte;
+			node->offset = count_local_var;
 			node->type = type;
 			map_put(local_var, varname, (void *)(node));
 		}else{
