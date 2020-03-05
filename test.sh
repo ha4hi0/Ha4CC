@@ -6,7 +6,7 @@ try(){
 
     ./Ha4CC "$input" > tmp.s
 	cc -c testutil.c
-    gcc -o tmp tmp.s testutil.o
+    gcc -g -o tmp tmp.s testutil.o
     ./tmp
     actual="$?"
 
@@ -48,9 +48,15 @@ try 10 "int main(){return foo(2, 8);}"
 try 55 "int main(){return foo(1, foo(2, foo(3, foo(4, foo(5, foo(6, foo(7, foo(8, foo(9, 10)))))))));}"
 try 233 "int fibo(int n){if(n==0){return 0;}else if(n==1){return 1;}else{return fibo(n-1)+fibo(n-2);}}int main(){return fibo(13);}"
 try 2 "int main(){int a; int b; int c; a=2;b=1;c=0;return hoge(a, b, c);}int hoge(int b, int c, int d){return c*(b+d);}"
-try 3 "int main(){int x; x=3;int y; y=&x; return *y;}"
-try 3 "int main(){int x; x=3;int y; y=5;int z; z=&y+8; return *z;}"
+try 3 "int main(){int x; x=3;int *y; y=&x; return *y;}"
+try 3 "int main(){int x; x=3;int y; y=5;int *z; z=&y+1; return *z;}"
 try 3 "int main(){int x; int *y; y=&x; *y=3; return x;}"
 try 8 "int main(){int *p; alloc4(&p, 1, 2, 4, 8); int *q; q=p+3; return *q;}"
 try 6 "int main(){int *p; alloc4(&p, 0, 1, 2, 3); int i;for(i=0; i<4; i=i+1){*p=4+i; p=p+1;}return *(p-2);}"
+try 0 "int main(){;int i;i=0;;;return i;;;}"
+try 4 "int main(){return sizeof(0);}"
+try 4 "int main(){int **x; return sizeof(*(*(x+4)-2));}"
+try 32 "int main(){int x; x = sizeof(x); return sizeof(&x)*sizeof(x);}"
+try 10 "int main(){int i; i=0; {i=10; int i; i=100;} return i;}"
+
 echo OK

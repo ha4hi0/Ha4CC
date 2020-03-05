@@ -1,155 +1,7 @@
 // parse.c
 #include "Ha4CC.h"
 
-int is_alnum(char c)
-{
-    return ('a' <= c && c <= 'z') ||
-           ('A' <= c && c <= 'Z') ||
-           ('0' <= c && c <= '9') ||
-           (c == '_');
-}
-
-
-Word *is_reservedword(char *key)
-{
-	for(int i=1; i<reservedwords->len; i++){
-		if((strncmp(((Word *)(reservedwords->data[i]))->name, key, ((Word *)(reservedwords->data[i]))->len)==0)&&(!is_alnum(key[((Word *)(reservedwords->data[i]))->len]))){
-			return (Word *)(reservedwords->data[i]);
-		}
-	}
-	return NULL;
-}
-
-int is_oneletteroperator(char c)
-{
-	char ops[] = {
-        '+' ,'-' ,'*' ,'/' ,')' ,'(' ,'<' ,'>' ,'=', ';', '{', '}', ',', '&'
-	};
-
-	for(int i=0; i<sizeof(ops)/sizeof(char); i++){
-		if(ops[i]==c)return 1;
-	}
-	return 0;
-}
-
-int is_twoletteroperator(char *c)
-{
-	char *ops[] = {
-		"==", "!=", "<=", ">="
-	};
-
-	int vals[] = {
-		TK_EQ, TK_NE, TK_LE, TK_GE
-	};
-
-	for(int i=0; i<sizeof(vals)/sizeof(int); i++){
-		if(!strncmp(c, ops[i], 2)){
-			return vals[i];
-		}
-	}
-	return 0;
-}
-
-// break string up into tokens
-void tokenize(){
-    char *p = user_input;
-
-    while(*p){
-
-        // skip space
-        if(isspace(*p)){
-            p++;
-            continue;
-        }
-
-		Word *word=is_reservedword(p);
-		if(word){
-			Token *t = (Token *)malloc(sizeof(Token));
-			t->ty = word->val;
-			t->input = p;
-			p+=word->len;
-			vec_push(tokens, t);
-			continue;
-		}
-
-		int val=is_twoletteroperator(p);
-		if(val){
-            Token *t = (Token *)malloc(sizeof(Token));
-            t->ty = val;
-            t->input = p;
-            vec_push(tokens, t);
-            p+=2;
-            continue;
-		}
-
-        if(is_oneletteroperator(*p)){
-            Token *t = (Token *)malloc(sizeof(Token));
-            t->ty = *p;
-            t->input = p;
-            vec_push(tokens, t);
-            p++;
-            continue;
-        }
-
-        if(isdigit(*p)){
-            Token *t = (Token *)malloc(sizeof(Token));
-            t->ty = TK_NUM;
-            t->input = p;
-            t->val = strtol(p, &p, 10);
-            vec_push(tokens, t);
-            continue;
-        }
-
-        if(is_alnum(*p)){
-            int i=0;
-            for(;is_alnum(*(p+i));i++);
-            Token *t = malloc(sizeof(Token));
-            t->ty = TK_IDENT;
-            t->name = malloc(sizeof(char)*i);
-            strncpy(t->name, p, i);
-            t->name[i]='\0';
-            t->input = p;
-            vec_push(tokens,t);
-            p+=i;
-            continue;
-        }
-
-        error_at(p, "failed to tokenize");
-    }
-
-    Token *t = (Token *)malloc(sizeof(Token));
-    t->ty = TK_EOF;
-    t->input = p;
-    vec_push(tokens, t);
-}
-
-// tree
-Node *new_node(int ty, Node *lhs, Node *rhs)
-{
-    Node *node = (Node *)(malloc(sizeof(Node)));
-    node->ty = ty;
-    node->lhs = lhs;
-    node->rhs = rhs;
-    return node;
-}
-
-Node *new_node_num(int val)
-{
-    Node *node = (Node *)(malloc(sizeof(Node)));
-    node->ty = ND_NUM;
-    node->val = val;
-    return node;
-}
-
-Node *new_node_if(Node *cond, Node *then, Node *els)
-{
-    Node *node = (Node *)(malloc(sizeof(Node)));
-    node->ty = ND_IF;
-    node->cond = cond;
-    node->then = then;
-    node->els = els;
-    return node;
-}
+int pos;
 
 Node *new_node_block()
 {
@@ -170,38 +22,80 @@ Node *new_node_ident()
 	if(consume('(')){
 		node->ty = ND_FUNCCALL;
 		node->funcname = varname;
-		node->args = new_vector();
+		node->callargs = new_vector();
 		if(!consume(')')){
-			vec_push(node->args, (void *)expr());
+			vec_push(node->callargs, (void *)expr());
 			while(!consume(')')){
 				consume(',');
-				vec_push(node->args, (void *)expr());
+				vec_push(node->callargs, (void *)expr());
 			}
 		}
 	}else{
-		void* ret = map_get(local_var, varname);
-		if(ret==NULL){
-			error("%s is not defined.", varname);
-		}
-		node = (Node *)ret;
+		node->ty = ND_LVAR;
+		node->varname = varname;
 	}
 	return node;
 }
 
 Type *parse_type()
 {
-	Type *ret = malloc(sizeof(Type));
+	Type *ret;
 	if(consume(TK_INT)){
-		ret->ty = INT;
+		ret = type_int();
 		while(consume('*')){
-			Type *tmp = malloc(sizeof(Type));
-			tmp->ty = PTR;
-			tmp->ptr_to = ret;
+			Type *tmp;
+			tmp = ptr2type(ret);
 			ret = tmp;
 		}
 		return ret;
 	}
 	return NULL;
+}
+
+Vector *parse_parameter_list()
+{
+	Vector *params = new_vector();
+	if(!consume(')')){
+		Type *ret = parse_type();
+		if(ret == NULL){
+			error("argument must have type specifier.");
+		}
+		char *argname = ((Token *)(tokens->data[pos++]))->name;
+		Node *lvar = malloc(sizeof(Node));
+		lvar->ty = ND_LVAR_DECL;
+		lvar->type = ret;
+		lvar->varname = argname;
+		vec_push(params, lvar);
+		while(!consume(')')){
+			expect_token(',');
+			Type *ret = parse_type();
+			if(ret == NULL){
+				error("argument must have type specifier.");
+			}
+			Node *lvar = malloc(sizeof(Node));
+			argname = ((Token *)(tokens->data[pos++]))->name;
+			lvar->ty = ND_LVAR_DECL;
+			lvar->type = ret;
+			lvar->varname = argname;
+			vec_push(params, lvar);
+		}
+	}
+	return params;
+}
+
+Node *parse_funcdef()
+{
+	Node *node = malloc(sizeof(Node));
+	Type *ret = parse_type();
+	if(ret == NULL) node->ret_type = type_int();
+	else node->ret_type = ret;
+
+	node->fname = expect_token(TK_IDENT)->name;
+	node->ty = ND_FUNCDEF;
+	expect_token('(');
+	node->args = parse_parameter_list();
+	node->defbody = new_node_block();
+	return node;
 }
 
 int consume(int ty)
@@ -213,81 +107,25 @@ int consume(int ty)
     return 1;
 }
 
-void program()
+void program(Vector *asts)
 {
     while(((Token *)(tokens->data[pos]))->ty!=TK_EOF){
-		count_local_var = 0;
-        vec_push(code, top_level());
+        vec_push(asts, top_level());
     }
-    vec_push(code, NULL);
+    vec_push(asts, NULL);
 }
 
 Node *top_level()
 {
-	Node *node = (Node *)malloc(sizeof(Node));
-	expect_token(TK_INT);
-	expect_token(TK_IDENT);
-	node->ty = ND_FUNCDEF;
-	node->deffuncname = ((Token *)(tokens->data[pos-1]))->name;
-	node->local_var = new_map();
-	node->argname = new_vector();
-	local_var = node->local_var;
-	expect_token('(');
-	if(!consume(')')){
-		Type *ret = parse_type();
-		if(ret == NULL){
-			error("argument must have type specifier.");
-		}
-		char *argname = ((Token *)(tokens->data[pos++]))->name;
-		//map_put(local_var, argname, (void *)((++count_local_var)*8));
-		Node *lvar = malloc(sizeof(Node));
-		lvar->ty = ND_LVAR;
-		lvar->offset = (++count_local_var)*8;
-		lvar->type = ret;
-		map_put(local_var, argname, (void *)(lvar));
-		vec_push(node->argname, argname);
-		while(!consume(')')){
-			expect_token(',');
-			Type *tmpret = parse_type();
-			if(ret == NULL){
-				error("argument must have type specifier.");
-			}
-			Node *tmp = malloc(sizeof(Node));
-			argname = ((Token *)(tokens->data[pos++]))->name;
-			tmp->ty = ND_LVAR;
-			tmp->offset = (++count_local_var)*8;
-			tmp->type = tmpret;
-			map_put(local_var, argname, (void *)(tmp));
-			vec_push(node->argname, argname);
-		}
-	}
-	node->defbody = new_node_block();
+	Node *node = parse_funcdef();
 	return node;
 }
 
 Node *stmt()
 {
     Node *node;
-	Type *type = parse_type();
-	//fprintf(stderr, "%d\n", type->ty);
-	if(type != NULL){
-		node = malloc(sizeof(Node));
-		char *varname = ((Token *)(tokens->data[pos++]))->name;
-		void* ret = map_get(local_var, varname);
-		if(ret == (NULL)){
-			node->ty = ND_LVAR;
-			node->offset = (++count_local_var)*8;
-			node->type = type;
-			map_put(local_var, varname, (void *)(node));
-		}else{
-			error_at(((Token *)(tokens->data[pos-1]))->input, "multiple definition");
-		}
-		expect_token(';');
-		//return node;
-		//continue;
-		return stmt();
-	}
     Token *t = tokens->data[pos];
+	Type *type;
     switch(t->ty){
     case TK_IF:
     	node = malloc(sizeof(Node));
@@ -339,11 +177,24 @@ Node *stmt()
         return node;
 	case '{':
 		return new_node_block();
+	case ';':
+		pos++;
+		node = malloc(sizeof(Node));
+		node->ty = ND_EMPTY;
+		return node;
     default:
-    	node = malloc(sizeof(Node));
-        node = expr();
-        expect_token(';');
-        return node;
+	    type = parse_type();
+	    node = malloc(sizeof(Node));
+	    if(type != NULL){
+	    	char *varname = ((Token *)(tokens->data[pos++]))->name;
+	    	node->ty = ND_LVAR_DECL;
+	    	node->type = type;
+	    	node->varname = varname;
+	    }else{
+            node = expr();
+	    }
+            expect_token(';');
+            return node;
     }
 }
 
@@ -379,20 +230,21 @@ Node *equality()
 Node *relational()
 {
     Node *node = add();
+	int ND;
 
-    while(1){
-        if(consume('<')){
-            node = new_node('<', node, add());
-        }else if(consume('>')){
-            node = new_node('<', add(), node);
-        }else if(consume(TK_LE)){
-            node = new_node(ND_LE, node, add());
-        }else if(consume(TK_GE)){
-            node = new_node(ND_LE, add(), node);
-        }else{
-            return node;
-        }
-    }
+	while(1){
+	    if(consume('<')){
+			node = new_node('<', node, add());
+	    }else if(consume('>')){
+			node = new_node('>', node, add());
+	    }else if(consume(TK_LE)){
+			node = new_node(ND_LE, node, add());
+	    }else if(consume(TK_GE)){
+	        node = new_node(ND_GE, node, add());
+	    }else{
+	        return node;
+	    }
+	}
 }
 
 Node *add()
@@ -427,8 +279,9 @@ Node *mul()
 
 Node *unary()
 {
-
-    if(consume('+')){
+	if(consume(TK_SIZEOF)){
+		return new_node(ND_SIZEOF, unary(), (Node *)NULL);
+	}else if(consume('+')){
         return term();
     }else if(consume('-')){
         return new_node('-', new_node_num(0), term());
@@ -464,10 +317,32 @@ Node *term()
     return node;
 }
 
-void expect_token(int ty)
+Token *expect_token(int ty)
 {
     Token *t = tokens->data[pos];
     if(!consume(ty)){
         error("%c (%d) expected, but got %c (%d)", ty, ty, t->ty, t->ty);
     }
+	return t;
+}
+
+Word *new_word(char *name, int len, int val)
+{
+	Word *word = malloc(sizeof(Word));
+	word->name = name;
+	word->len = len;
+	word->val = val;
+	return word;
+}
+
+void init_reservedwords(Vector *array)
+{
+	// must push in order from the longest
+	vec_push(array, new_word("return", 6, TK_RETURN));
+	vec_push(array, new_word("sizeof", 6, TK_SIZEOF));
+	vec_push(array, new_word("while", 5, TK_WHILE));
+	vec_push(array, new_word("else", 4, TK_ELS));
+	vec_push(array, new_word("for", 3, TK_FOR));
+	vec_push(array, new_word("int", 3, TK_INT));
+	vec_push(array, new_word("if", 2, TK_IF));
 }
