@@ -25,6 +25,9 @@ void gen(Node *node){
 		case ND_EMPTY:
 			return;
 
+		case ND_LVAR_DECL:
+			return;
+
 		case ND_FUNCDEF:
 			gen_funcdef(node);
 			return;
@@ -189,7 +192,7 @@ void gen_lval(Node *node)
 		gen(node->lhs);
 	}else if(node->ty == ND_LVAR){
     	printf("    mov rax, rbp\n");
-    	printf("    sub rax, %d\n", node->offset);
+    	printf("    sub rax, %d\n", -node->offset);
     	printf("    push rax\n");
 	}
 	else{
@@ -268,7 +271,7 @@ void gen_block(Node *node)
 	int len = node->stmts->len;
 	for(int i=0; i<len-1; i++){
 		Node *tmp = (Node *)(node->stmts->data[i]);
-		if(tmp->ty == ND_EMPTY)continue;
+		if(tmp->ty == ND_EMPTY || tmp->ty == ND_LVAR_DECL)continue;
 		gen(tmp);
 		printf("    pop rax\n");
 	}
@@ -277,11 +280,11 @@ void gen_block(Node *node)
 
 void gen_funccall(Node *node)
 {
-	for(int i=0; i<node->args->len; i++){
-		gen((Node *)(node->args->data[i]));
+	for(int i=0; i<node->callargs->len; i++){
+		gen((Node *)(node->callargs->data[i]));
 	}
-	for(int i=0; i<node->args->len; i++){
-		printf("    pop %s\n", reg_name(8, node->args->len-i));
+	for(int i=0; i<node->callargs->len; i++){
+		printf("    pop %s\n", reg_name(8, node->callargs->len-i));
 	}
 	printf("    mov r10, rsp\n");
 	printf("    and rsp, -16\n");
@@ -295,20 +298,14 @@ void gen_funccall(Node *node)
 }
 void gen_funcdef(Node *node)
 {
-	printf(".global %s\n", node->deffuncname);
-	printf("%s:\n", node->deffuncname);
+	printf("%s:\n", node->fname);
 	// prologue
 	printf("    push rbp\n");
 	printf("    mov rbp, rsp\n");
-	if(map_len(node->local_var) == 0){
-		printf("    sub rsp, 0\n");
-	}else{
-		printf("    sub rsp, %d\n", ((Node *)(node->local_var->vals->data[map_len(node->local_var)-1]))->offset);
-	}
-
-	for(int i=0; i<node->argname->len; i++){
-		Node *ret=(Node *)map_get(node->local_var, node->argname->data[i]);
-		printf("    mov [rbp-%d], %s\n", ret->offset, reg_name(ret->type->byte, i+1));
+	printf("    sub rsp, %d\n", -*(node->env->max_idx));
+	for(int i=0; i < node->args->len; i++){
+		Node *tmp = (Node *)get_var(node->env, ((Node *)(node->args->data[i]))->varname);
+		printf("    mov [rbp-%d], %s\n", -tmp->offset, reg_name(tmp->type->byte, i+1));
 	}
 
 	gen(node->defbody);
@@ -317,4 +314,15 @@ void gen_funcdef(Node *node)
 	printf("    mov rsp, rbp\n");
 	printf("    pop rbp\n");
 	printf("    ret\n");
+}
+
+void start_gen(Vector *asts)
+{
+	printf(".intel_syntax noprefix\n");
+	printf(".global main\n");
+
+    // generate codes
+    for(int i=0; asts->data[i]; i++){
+        gen(((Node *)(asts->data[i])));
+    }
 }

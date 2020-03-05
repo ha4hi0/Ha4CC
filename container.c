@@ -58,13 +58,13 @@ Map *new_map()
     return map;
 }
 
-void map_put(Map *map, char *key, void *val)
+void map_put(Map *map, const char *key, void *val)
 {
     vec_push(map->keys, key);
     vec_push(map->vals, val);
 }
 
-void *map_get(Map *map, char *key)
+void *map_get(Map *map, const char *key)
 {
     for(int i=map->keys->len-1; i>=0; i--){
         if(strcmp(map->keys->data[i], key)==0){
