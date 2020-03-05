@@ -15,10 +15,8 @@ int main(int argc, char **argv){
         runtest();
         return 0;
     }
-    asts = new_vector();
-    tokens = new_vector();
-    tokenize();
-    program(asts);
+    tokens = tokenize();
+	Vector *asts = program(tokens);
 	asts = analyze(asts);
 	start_gen(asts);
     return 0;

@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-void DOKO(int i);
+void DOKO(int i); // for debugging
 
 typedef struct Scope Scope;
 
@@ -26,7 +26,6 @@ typedef struct{
 
 char *user_input;
 Vector *tokens;
-Vector *asts;
 int count_begin;
 int count_else;
 int count_end;
@@ -81,8 +80,7 @@ typedef struct{
 	int val;
 }Word;
 
-
-void tokenize();
+Vector* tokenize();
 
 // parse.c
 // value of node type
@@ -174,21 +172,33 @@ typedef struct Node{
     
     };
 }Node;
-void program();
-Node *top_level();
-Node *stmt();
-Node *expr();
-Node *assign();
-Node *equality();
-Node *relational();
-Node *add();
-Node *mul();
-Node *unary();
-Node *term();
-int consume(int ty);
-Token* expect_token(int ty);
-Node *new_node_ident();
-Node *parse_funcdef();
+
+typedef struct{
+	Vector *tokens;
+	int pos;
+} TokenSeq;
+
+TokenSeq *new_tokenseq(Vector *tokens);
+char *get_token_name(TokenSeq *seq);
+
+Vector *program(Vector *tokens);
+Node *top_level(TokenSeq *seq);
+Node *stmt(TokenSeq *seq);
+Node *expr(TokenSeq *seq);
+Node *assign(TokenSeq *seq);
+Node *equality(TokenSeq *seq);
+Node *relational(TokenSeq *seq);
+Node *add(TokenSeq *seq);
+Node *mul(TokenSeq *seq);
+Node *unary(TokenSeq *seq);
+Node *term(TokenSeq *seq);
+int consume(int ty, TokenSeq *seq);
+Token* expect_token(int ty, TokenSeq *seq);
+Node *new_node_ident(TokenSeq *seq);
+Vector *parse_parameter_list(TokenSeq *seq);
+Node *parse_funcdef(TokenSeq *seq);
+Type *parse_type(TokenSeq *seq);
+Node *new_node_block(TokenSeq *seq);
 
 // node.c
 Node *new_node(int ty, Node *lhs, Node *rhs);
@@ -236,14 +246,7 @@ Node *add_func(Scope *env, Node *node);
 // program inputted
 extern char *user_input;
 
-// Token sequence
-extern Vector *tokens;
-extern Vector *code;
-extern Map *local_var;
-
 // position of token read
-extern int pos;
-extern int count_local_var;
 extern int count_begin;
 extern int count_else;
 extern int count_end;
