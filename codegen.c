@@ -65,8 +65,15 @@ void gen(Node *node){
         	return;
 
 		case ND_LVAR:
-			printf("    push [rbp%d]\n", node->offset);
+			printf("    mov %s, [rbp%d]\n", reg_name(node->type->byte, 0), node->offset);
+			printf("    push rax\n");
         	return;
+
+		case ND_ARY2PTR:
+			printf("    mov rax, rbp\n");
+			printf("    sub rax, %d\n", -node->ary->offset);
+			printf("    push rax\n");
+			return;
 
 		case '=':
         	gen_lval(node->lhs);
@@ -95,6 +102,7 @@ void gen(Node *node){
 			if(match_type(node, TY_PTR)){
 				printf("    push %d\n", node->type->ptr_to->byte);
 				printf("    pop rax\n");
+				printf("    cltq\n");
 				printf("    imul rdi, rax\n");
 			}
 			printf("    pop rax\n");
@@ -108,6 +116,7 @@ void gen(Node *node){
 			if(match_type2(node->lhs, node->rhs, TY_PTR, TY_INT)){
 				printf("    push %d\n", node->type->ptr_to->byte);
 				printf("    pop rax\n");
+				printf("    cltq\n");
 				printf("    imul rdi, rax\n");
 			}
     		printf("    pop rax\n");
@@ -183,9 +192,6 @@ void gen(Node *node){
 void gen_lval(Node *node)
 {
 	if(node->ty == ND_DEREF){
-		if(node->lhs->type->ty != TY_PTR){
-			error("invalid type argument of unary '*'");
-		}
 		gen(node->lhs);
 	}else if(node->ty == ND_LVAR){
     	printf("    mov rax, rbp\n");

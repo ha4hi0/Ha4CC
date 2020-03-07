@@ -211,7 +211,13 @@ Node *stmt(TokenSeq *seq)
 	    if(type != NULL){
 	    	char *varname = consume_token_name(seq);
 	    	node->ty = ND_LVAR_DECL;
-	    	node->type = type;
+			if(consume('[', seq)){
+				int len=expect_token(TK_NUM, seq)->val;
+				node->type = ary2type(type, len);
+				expect_token(']', seq);
+			}else{
+	    		node->type = type;
+			}
 	    	node->varname = varname;
 	    }else{
             node = expr(seq);
@@ -331,7 +337,6 @@ Node *term(TokenSeq *seq)
 
     if(get_token(seq)->ty == TK_NUM){
 		int a = next(seq)->val;
-        //node = new_node_num(next(seq)->val);
         node = new_node_num(a);
     }else if(get_token(seq)->ty == TK_IDENT){
 		node = new_node_ident(seq);
@@ -339,6 +344,10 @@ Node *term(TokenSeq *seq)
         error_at(get_token(seq)->input, 
                 "unexpected token: expected a number");
     }
+	if(consume('[', seq)){
+		node = new_node(ND_DEREF, new_node('+', expr(seq), node), NULL);
+		expect_token(']', seq);
+	}
     return node;
 }
 

@@ -58,5 +58,8 @@ try 4 "int main(){return sizeof(0);}"
 try 4 "int main(){int **x; return sizeof(*(*(x+4)-2));}"
 try 32 "int main(){int x; x = sizeof(x); return sizeof(&x)*sizeof(x);}"
 try 10 "int main(){int i; i=0; {i=10; int i; i=100;} return i;}"
+try 4  "int main() { int ary[10]; *(ary + 5) = 4; return *(ary + 5); }"
+try 5 "int main() { int ary[10]; int i; for (i = 0; i < 10; i=i+1) *(i + ary) = i; return *(ary + 5); }"
+try 55 "int main(){int ary[100]; int i; for(i=0; i<100; i=i+1){if(i==0)ary[i]=i;else ary[i]=ary[i-1]+i;} return 10[ary];}"
 
 echo OK

@@ -103,21 +103,31 @@ enum{
 	ND_DEREF,
 	ND_EMPTY,
 	ND_SIZEOF,
+	ND_ARY2PTR,
 };
 
 enum TY{
 	TY_INT,
 	TY_PTR,
+	TY_ARRAY,
 };
 
 typedef struct Type{
 	enum TY ty;
-	struct Type *ptr_to;
 	int byte;
+	union{
+		struct Type *ptr_to;
+
+		struct{
+			struct Type *ary_to;
+			int len;
+		};
+	};
 }Type;
 
 // Node type
-typedef struct Node{
+typedef struct Node Node;
+struct Node{
     int ty;         // Node type
 	Type *type;     // type of return value (!= ty)
 	Scope *env;
@@ -129,28 +139,28 @@ typedef struct Node{
 			Vector *args;
 			Map *local_var; // unnecessary
 			Type *ret_type;
-			struct Node *defbody;
+			Node *defbody;
 		};
 
         //ND_FOR
         struct{
-            struct Node *init;
-            struct Node *for_cond;
-            struct Node *iter;
-            struct Node *body;
+            Node *init;
+            Node *for_cond;
+            Node *iter;
+            Node *body;
         };
 
         //ND_WHILE
         //ND_IF
         struct{
-            struct Node *cond;
-            struct Node *then;
-            struct Node *els;
+            Node *cond;
+            Node *then;
+            Node *els;
         };
 
         struct{
-            struct Node *lhs;
-            struct Node *rhs;
+            Node *lhs;
+            Node *rhs;
         };
 
 		//ND_FUNCCALL
@@ -167,11 +177,12 @@ typedef struct Node{
 
 		Vector *stmts;
 
+		Node *ary; // ND_ARY2PTR
+
         // ND_NUM
         int val;
-    
     };
-}Node;
+};
 
 typedef struct{
 	Vector *tokens;
@@ -205,6 +216,7 @@ Node *new_node(int ty, Node *lhs, Node *rhs);
 Node *new_node_num(int val);
 Node *new_node_if(Node *cond, Node *then, Node *els);
 Node *new_node_lvar_decl(Type *type, char *name);
+Node *ary2ptr(Node *node);
 
 // codegen.c
 void gen(Node *node);
@@ -222,6 +234,7 @@ Vector *analyze(Vector *code);
 Node *analyze_detail(Scope *env, Node *node);
 Type *type_int();
 Type *ptr2type(Type *type);
+Type *ary2type(Type *type, int len);
 int match_type(Node *node, enum TY ty);
 int match_type2(Node *lhs, Node *rhs, enum TY lty, enum TY rty);
 

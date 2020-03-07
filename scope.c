@@ -58,7 +58,11 @@ Node *add_symbol(Scope *env, const char *name, Node *node)
 Node *add_var(Scope *env, Node *node)
 {
 	Node *var = malloc(sizeof(Node));
-	env->stack_idx -= node->type->byte;
+	if(match_type(node, TY_ARRAY)){
+		env->stack_idx -= node->type->byte*node->type->len;
+	}else{
+		env->stack_idx -= node->type->byte;
+	}
 	if(env->stack_idx < *(env->max_idx)){
 		*(env->max_idx) = env->stack_idx;
 	}
@@ -75,4 +79,3 @@ Node *add_func(Scope *env, Node *node)
 	add_symbol(env, node->fname, node);
 	return node;
 }
-
