@@ -140,7 +140,29 @@ Vector *program(Vector *tokens)
 
 Node *top_level(TokenSeq *seq)
 {
-	Node *node = parse_funcdef(seq);
+	Node *node = malloc(sizeof(Node));
+	Type *ret = parse_type(seq);
+	if(ret == NULL) ret = type_int();
+	char *varname = expect_token(TK_IDENT, seq)->name;
+	if(consume('(', seq)){
+		node->fname = varname;
+		node->ty = ND_FUNCDEF;
+		node->args = parse_parameter_list(seq);
+		node->ret_type = ret;
+		//expect_token(')', seq);
+		node->defbody = new_node_block(seq);
+	}else{
+		node->varname = varname;
+		node->ty = ND_GVAR_DECL;
+		if(consume('[', seq)){
+			int len=expect_token(TK_NUM, seq)->val;
+			node->type = ary2type(ret, len);
+			expect_token(']', seq);
+		}else{
+			node->type = ret;
+		}
+		expect_token(';', seq);
+	}
 	return node;
 }
 

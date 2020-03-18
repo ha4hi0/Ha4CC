@@ -88,6 +88,8 @@ enum{
     ND_NUM = 256,
     ND_LVAR,        // Node type of local variables
 	ND_LVAR_DECL,
+	ND_GVAR,
+	ND_GVAR_DECL,
     ND_RETURN,
     ND_EQ,
     ND_NE,
@@ -170,6 +172,7 @@ struct Node{
 		};
 
         // ND_LVAR
+		// ND_GVAR
 		struct{
 			char *varname;
         	int offset;
@@ -220,7 +223,6 @@ Node *ary2ptr(Node *node);
 
 // codegen.c
 void gen(Node *node);
-void gen_lval(Node *node);
 void gen_if(Node *node);
 void gen_for(Node *node);
 void gen_while(Node *node);

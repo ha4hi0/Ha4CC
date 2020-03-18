@@ -61,5 +61,9 @@ try 10 "int main(){int i; i=0; {i=10; int i; i=100;} return i;}"
 try 4  "int main() { int ary[10]; *(ary + 5) = 4; return *(ary + 5); }"
 try 5 "int main() { int ary[10]; int i; for (i = 0; i < 10; i=i+1) *(i + ary) = i; return *(ary + 5); }"
 try 55 "int main(){int ary[100]; int i; for(i=0; i<100; i=i+1){if(i==0)ary[i]=i;else ary[i]=ary[i-1]+i;} return 10[ary];}"
+try 0 "int a; int main(){return a;}"
+try 5 "int a; int main(){a=5; return a;}"
+try 100 "int a; int foo(int *x){*x=100; int a; a=10; return a;} int main(){int *x; x=&a; foo(x); return a;}"
+try 45 "int a[10]; int init(){int i; for(i=1; i<10; i=i+1){a[i]=a[i-1]+i;} return 0;} int main(){init(); return a[9];}"
 
 echo OK

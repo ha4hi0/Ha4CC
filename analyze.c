@@ -150,9 +150,11 @@ Node *analyze_detail(Scope *env, Node *node)
 			node->type = NULL;
 			break;
 		case ND_LVAR_DECL:
+		case ND_GVAR_DECL:
 			add_var(env, node);
 			break;
         case ND_LVAR:
+		case ND_GVAR:
 			node = get_var(env, node->varname);
 			if(node == NULL) error("%s is not declared", node->varname);
 			break;

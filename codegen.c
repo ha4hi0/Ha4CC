@@ -3,12 +3,12 @@
 
 const char *reg_name(int byte, int i)
 {
-	const char *rreg[] = {
-		"rax", "rdi", "rsi", "rdx", "rcx", "r8", "r9"
-	};
-	
 	const char *ereg[] = {
 		"eax", "edi", "esi", "edx", "ecx", "r8d", "r9d"
+	};
+
+	const char *rreg[] = {
+		"rax", "rdi", "rsi", "rdx", "rcx", "r8", "r9"
 	};
 
 	switch(byte){
@@ -26,6 +26,17 @@ void gen(Node *node){
 			return;
 
 		case ND_LVAR_DECL:
+			return;
+
+		case ND_GVAR_DECL:
+			printf(".data\n");
+			printf("%s:\n", node->varname);
+			if(match_type(node, TY_ARRAY)){
+				printf("    .zero %d\n", node->type->len * node->type->ary_to->byte);
+			}else{
+				printf("    .zero %d\n", node->type->byte);
+			}
+			printf(".text\n");
 			return;
 
 		case ND_FUNCDEF:
@@ -69,24 +80,52 @@ void gen(Node *node){
 			printf("    push rax\n");
         	return;
 
-		case ND_ARY2PTR:
-			printf("    mov rax, rbp\n");
-			printf("    sub rax, %d\n", -node->ary->offset);
+		case ND_GVAR:
+			printf("    mov %s, %s[rip]\n", reg_name(node->type->byte, 0), node->varname);
 			printf("    push rax\n");
 			return;
 
-		case '=':
-        	gen_lval(node->lhs);
-        	gen(node->rhs);
+		case ND_ARY2PTR:
+			if(node->ary->ty == ND_GVAR){
+				printf("    lea rax, %s[rip]\n", node->ary->varname);
+				printf("    push rax\n");
+			}else{
+				printf("    mov rax, rbp\n");
+				printf("    sub rax, %d\n", -node->ary->offset);
+				printf("    push rax\n");
+			}
+			return;
 
-        	printf("    pop rdi\n");
-        	printf("    pop rax\n");
-        	printf("    mov [rax], %s\n", reg_name(node->lhs->type->byte, 1));
-        	printf("    push rdi\n");
+		case '=':
+			gen(node->rhs);
+			if(node->lhs->ty == ND_DEREF){
+				gen(node->lhs->lhs);
+        		printf("    pop rax\n");
+        		printf("    pop rdi\n");
+        		printf("    mov [rax], %s\n", reg_name(node->lhs->type->byte, 1));
+        		printf("    push rdi\n");
+			}else if(node->lhs->ty == ND_GVAR){
+				printf("    pop rdi\n");
+				printf("    mov %s[rip], %s\n", node->lhs->varname, reg_name(node->lhs->type->byte, 1));
+				printf("    push rdi\n");
+			}else if(node->lhs->ty == ND_LVAR){
+				printf("    pop rdi\n");
+				printf("    mov [rbp%d], %s\n", node->lhs->offset, reg_name(node->lhs->type->byte, 1));
+				printf("    push rdi\n");
+			}
         	return;
 
 		case ND_ADDR:
-			gen_lval(node->lhs);
+			if(node->lhs->ty == ND_DEREF){
+				gen(node->lhs->lhs);
+			}else if(node->lhs->ty == ND_GVAR){
+				printf("    lea rax, %s[rip]\n", node->lhs->varname);
+				printf("    push rax\n");
+			}else if(node->lhs->ty == ND_LVAR){
+				printf("    mov rax, rbp\n");
+				printf("    sub rax, %d\n", -node->lhs->offset);
+				printf("    push rax\n");
+			}
 			return;
 
 		case ND_DEREF:
@@ -189,20 +228,6 @@ void gen(Node *node){
     printf("    push rax\n");
 }
 
-void gen_lval(Node *node)
-{
-	if(node->ty == ND_DEREF){
-		gen(node->lhs);
-	}else if(node->ty == ND_LVAR){
-    	printf("    mov rax, rbp\n");
-    	printf("    sub rax, %d\n", -node->offset);
-    	printf("    push rax\n");
-	}
-	else{
-        error("lvalue requred as left operand of assignment");
-    }
-
-}
 
 void gen_if(Node *node)
 {

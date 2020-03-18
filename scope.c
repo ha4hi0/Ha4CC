@@ -31,7 +31,7 @@ Node *get_symbol(Scope *env, const char *name){
 Node *get_var(Scope *env, const char *name)
 {
 	Node *node = get_symbol(env, name);
-	if(node != NULL && node->ty != ND_LVAR){
+	if(node != NULL && node->ty != ND_LVAR && node->ty != ND_GVAR){
 		error("%s is not var", name);
 	}
 	return node;
@@ -58,18 +58,22 @@ Node *add_symbol(Scope *env, const char *name, Node *node)
 Node *add_var(Scope *env, Node *node)
 {
 	Node *var = malloc(sizeof(Node));
-	if(match_type(node, TY_ARRAY)){
-		env->stack_idx -= node->type->byte*node->type->len;
-	}else{
-		env->stack_idx -= node->type->byte;
+	if(node->ty == ND_GVAR_DECL){
+		var->ty = ND_GVAR;
+	}else if(node->ty == ND_LVAR_DECL){
+		var->ty = ND_LVAR;
+		if(match_type(node, TY_ARRAY)){
+			env->stack_idx -= node->type->byte*node->type->len;
+		}else{
+			env->stack_idx -= node->type->byte;
+		}
+		var->offset = env->stack_idx;
 	}
 	if(env->stack_idx < *(env->max_idx)){
 		*(env->max_idx) = env->stack_idx;
 	}
 	var->type = node->type;
 	var->varname = node->varname;
-	var->ty = ND_LVAR;
-	var->offset = env->stack_idx;
 	add_symbol(env, node->varname, var);
 	return node;
 }
