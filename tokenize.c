@@ -24,7 +24,7 @@ Word *is_reservedword(char *key)
 int is_oneletteroperator(char c)
 {
 	const char ops[] = {
-        '+' ,'-' ,'*' ,'/' ,')' ,'(' ,'<' ,'>' ,'=', ';', '{', '}', ',', '&'
+        '+' ,'-' ,'*' ,'/' ,')' ,'(' ,'<' ,'>' ,'=', ';', '{', '}', ',', '&', '[', ']'
 	};
 
 	for(int i=0; i<sizeof(ops)/sizeof(char); i++){
@@ -52,7 +52,8 @@ int is_twoletteroperator(char *c)
 }
 
 // break string up into tokens
-void tokenize(){
+Vector* tokenize(){
+	Vector *tokens = new_vector();
     char *p = user_input;
 
 	reservedwords = new_vector();
@@ -125,6 +126,27 @@ void tokenize(){
     t->ty = TK_EOF;
     t->input = p;
     vec_push(tokens, t);
+	return tokens;
 }
 
+Word *new_word(char *name, int len, int val)
+{
+	Word *word = malloc(sizeof(Word));
+	word->name = name;
+	word->len = len;
+	word->val = val;
+	return word;
+}
 
+void init_reservedwords(Vector *array)
+{
+	// must push in order from the longest
+	vec_push(array, new_word("return", 6, TK_RETURN));
+	vec_push(array, new_word("sizeof", 6, TK_SIZEOF));
+	vec_push(array, new_word("while", 5, TK_WHILE));
+	vec_push(array, new_word("char", 4, TK_CHAR));
+	vec_push(array, new_word("else", 4, TK_ELS));
+	vec_push(array, new_word("int", 3, TK_INT));
+	vec_push(array, new_word("for", 3, TK_FOR));
+	vec_push(array, new_word("if", 2, TK_IF));
+}

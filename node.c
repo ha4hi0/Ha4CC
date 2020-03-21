@@ -38,3 +38,17 @@ Node *new_node_lvar_decl(Type *type, char *name)
 	return node;
 }
 
+Node *new_node_ary2ptr(Node *node)
+{
+	Node *ret = malloc(sizeof(Node));
+	ret->ty = ND_ARY2PTR;
+	ret->ary = node;
+	ret->type = ptr2type(node->type->ary_to);
+	return ret;
+}
+
+Node *ary2ptr(Node *node)
+{
+	if(match_type(node, TY_ARRAY)) node = new_node_ary2ptr(node);
+	return node;
+}

@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-void DOKO(int i);
+void DOKO(int i); // for debugging
 
 typedef struct Scope Scope;
 
@@ -26,7 +26,6 @@ typedef struct{
 
 char *user_input;
 Vector *tokens;
-Vector *asts;
 int count_begin;
 int count_else;
 int count_end;
@@ -60,6 +59,7 @@ enum{
     TK_WHILE,
     TK_EOF,       // EOF token
 	TK_INT,
+	TK_CHAR,
 	TK_SIZEOF,
 };
 
@@ -81,8 +81,7 @@ typedef struct{
 	int val;
 }Word;
 
-
-void tokenize();
+Vector* tokenize();
 
 // parse.c
 // value of node type
@@ -90,6 +89,8 @@ enum{
     ND_NUM = 256,
     ND_LVAR,        // Node type of local variables
 	ND_LVAR_DECL,
+	ND_GVAR,
+	ND_GVAR_DECL,
     ND_RETURN,
     ND_EQ,
     ND_NE,
@@ -105,21 +106,32 @@ enum{
 	ND_DEREF,
 	ND_EMPTY,
 	ND_SIZEOF,
+	ND_ARY2PTR,
 };
 
 enum TY{
 	TY_INT,
 	TY_PTR,
+	TY_CHAR,
+	TY_ARRAY,
 };
 
 typedef struct Type{
 	enum TY ty;
-	struct Type *ptr_to;
 	int byte;
+	union{
+		struct Type *ptr_to;
+
+		struct{
+			struct Type *ary_to;
+			int len;
+		};
+	};
 }Type;
 
 // Node type
-typedef struct Node{
+typedef struct Node Node;
+struct Node{
     int ty;         // Node type
 	Type *type;     // type of return value (!= ty)
 	Scope *env;
@@ -131,28 +143,28 @@ typedef struct Node{
 			Vector *args;
 			Map *local_var; // unnecessary
 			Type *ret_type;
-			struct Node *defbody;
+			Node *defbody;
 		};
 
         //ND_FOR
         struct{
-            struct Node *init;
-            struct Node *for_cond;
-            struct Node *iter;
-            struct Node *body;
+            Node *init;
+            Node *for_cond;
+            Node *iter;
+            Node *body;
         };
 
         //ND_WHILE
         //ND_IF
         struct{
-            struct Node *cond;
-            struct Node *then;
-            struct Node *els;
+            Node *cond;
+            Node *then;
+            Node *els;
         };
 
         struct{
-            struct Node *lhs;
-            struct Node *rhs;
+            Node *lhs;
+            Node *rhs;
         };
 
 		//ND_FUNCCALL
@@ -162,6 +174,7 @@ typedef struct Node{
 		};
 
         // ND_LVAR
+		// ND_GVAR
 		struct{
 			char *varname;
         	int offset;
@@ -169,36 +182,49 @@ typedef struct Node{
 
 		Vector *stmts;
 
+		Node *ary; // ND_ARY2PTR
+
         // ND_NUM
         int val;
-    
     };
-}Node;
-void program();
-Node *top_level();
-Node *stmt();
-Node *expr();
-Node *assign();
-Node *equality();
-Node *relational();
-Node *add();
-Node *mul();
-Node *unary();
-Node *term();
-int consume(int ty);
-Token* expect_token(int ty);
-Node *new_node_ident();
-Node *parse_funcdef();
+};
+
+typedef struct{
+	Vector *tokens;
+	int pos;
+} TokenSeq;
+
+TokenSeq *new_tokenseq(Vector *tokens);
+char *get_token_name(TokenSeq *seq);
+
+Vector *program(Vector *tokens);
+Node *top_level(TokenSeq *seq);
+Node *stmt(TokenSeq *seq);
+Node *expr(TokenSeq *seq);
+Node *assign(TokenSeq *seq);
+Node *equality(TokenSeq *seq);
+Node *relational(TokenSeq *seq);
+Node *add(TokenSeq *seq);
+Node *mul(TokenSeq *seq);
+Node *unary(TokenSeq *seq);
+Node *term(TokenSeq *seq);
+int consume(int ty, TokenSeq *seq);
+Token* expect_token(int ty, TokenSeq *seq);
+Node *new_node_ident(TokenSeq *seq);
+Vector *parse_parameter_list(TokenSeq *seq);
+Node *parse_funcdef(TokenSeq *seq);
+Type *parse_type(TokenSeq *seq);
+Node *new_node_block(TokenSeq *seq);
 
 // node.c
 Node *new_node(int ty, Node *lhs, Node *rhs);
 Node *new_node_num(int val);
 Node *new_node_if(Node *cond, Node *then, Node *els);
 Node *new_node_lvar_decl(Type *type, char *name);
+Node *ary2ptr(Node *node);
 
 // codegen.c
 void gen(Node *node);
-void gen_lval(Node *node);
 void gen_if(Node *node);
 void gen_for(Node *node);
 void gen_while(Node *node);
@@ -211,7 +237,9 @@ void start_gen(Vector *asts);
 Vector *analyze(Vector *code);
 Node *analyze_detail(Scope *env, Node *node);
 Type *type_int();
+Type *type_char();
 Type *ptr2type(Type *type);
+Type *ary2type(Type *type, int len);
 int match_type(Node *node, enum TY ty);
 int match_type2(Node *lhs, Node *rhs, enum TY lty, enum TY rty);
 
@@ -236,14 +264,7 @@ Node *add_func(Scope *env, Node *node);
 // program inputted
 extern char *user_input;
 
-// Token sequence
-extern Vector *tokens;
-extern Vector *code;
-extern Map *local_var;
-
 // position of token read
-extern int pos;
-extern int count_local_var;
 extern int count_begin;
 extern int count_else;
 extern int count_end;

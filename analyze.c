@@ -18,6 +18,25 @@ Type *type_int()
 	return ret;
 }
 
+Type *type_char()
+{
+	Type *ret = malloc(sizeof(Type));
+	ret->ty = TY_CHAR;
+	ret->ptr_to = NULL;
+	ret->byte = 1;
+	return ret;
+}
+
+Type *ary2type(Type *type, int len)
+{
+	Type *ret = malloc(sizeof(Type));
+	ret->ty = TY_ARRAY;
+	ret->ary_to = type;
+	ret->byte = type->byte;
+	ret->len = len;
+	return ret;
+}
+
 Type *ptr2type(Type *type)
 {
 	Type *ret = malloc(sizeof(Type));
@@ -42,8 +61,8 @@ Node *analyze_detail(Scope *env, Node *node)
 	if(node == NULL) return NULL;
 	switch(node->ty){
 		case '+' :
-			node->rhs = analyze_detail(env, node->rhs);
-			node->lhs = analyze_detail(env, node->lhs);
+			node->rhs = ary2ptr(analyze_detail(env, node->rhs));
+			node->lhs = ary2ptr(analyze_detail(env, node->lhs));
 			if(match_type2(node->lhs, node->rhs, TY_PTR, TY_PTR)){
 				error("invalid operand to binary +");
 			}
@@ -57,8 +76,8 @@ Node *analyze_detail(Scope *env, Node *node)
 			}
 			break;
 		case '-' :
-			node->rhs = analyze_detail(env, node->rhs);
-			node->lhs = analyze_detail(env, node->lhs);
+			node->rhs = ary2ptr(analyze_detail(env, node->rhs));
+			node->lhs = ary2ptr(analyze_detail(env, node->lhs));
 			if(match_type2(node->lhs, node->rhs, TY_INT, TY_PTR)){
 				error("int - ptr is not allowed");
 			}
@@ -74,7 +93,10 @@ Node *analyze_detail(Scope *env, Node *node)
 		case '/' :
 			node->rhs = analyze_detail(env, node->rhs);
 			node->lhs = analyze_detail(env, node->lhs);
-			node->type = type_int();
+			if(match_type(node->lhs, TY_PTR) || match_type(node->rhs, TY_PTR)){
+				error("invalid operand to binary *");
+			}
+			node->type = node->lhs->type;
 			break;
 		case '=':
 			node->rhs = analyze_detail(env, node->rhs);
@@ -140,9 +162,11 @@ Node *analyze_detail(Scope *env, Node *node)
 			node->type = NULL;
 			break;
 		case ND_LVAR_DECL:
+		case ND_GVAR_DECL:
 			add_var(env, node);
 			break;
         case ND_LVAR:
+		case ND_GVAR:
 			node = get_var(env, node->varname);
 			if(node == NULL) error("%s is not declared", node->varname);
 			break;
@@ -164,13 +188,20 @@ Node *analyze_detail(Scope *env, Node *node)
 			node->type = ptr2type(node->lhs->type);
 			break;
 	    case ND_DEREF:
-			node->lhs = analyze_detail(env, node->lhs);
+			node->lhs = ary2ptr(analyze_detail(env, node->lhs));
+			if(!match_type(node->lhs, TY_PTR)){
+				error("invalid type argument of unary '*'");
+			}
 			node->type = node->lhs->type->ptr_to;
 			break;
+
 		case ND_SIZEOF:
 		{
 			node->lhs = analyze_detail(env, node->lhs);
 			int tmp = node->lhs->type->byte;
+			if(match_type(node->lhs, TY_ARRAY)){
+				tmp *= node->lhs->type->len;
+			}
 			node->type = type_int();
 			node->ty = ND_NUM;
 			node->val = tmp;
