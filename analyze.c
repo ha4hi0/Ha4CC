@@ -18,6 +18,15 @@ Type *type_int()
 	return ret;
 }
 
+Type *type_char()
+{
+	Type *ret = malloc(sizeof(Type));
+	ret->ty = TY_CHAR;
+	ret->ptr_to = NULL;
+	ret->byte = 1;
+	return ret;
+}
+
 Type *ary2type(Type *type, int len)
 {
 	Type *ret = malloc(sizeof(Type));
@@ -84,7 +93,10 @@ Node *analyze_detail(Scope *env, Node *node)
 		case '/' :
 			node->rhs = analyze_detail(env, node->rhs);
 			node->lhs = analyze_detail(env, node->lhs);
-			node->type = type_int();
+			if(match_type(node->lhs, TY_PTR) || match_type(node->rhs, TY_PTR)){
+				error("invalid operand to binary *");
+			}
+			node->type = node->lhs->type;
 			break;
 		case '=':
 			node->rhs = analyze_detail(env, node->rhs);

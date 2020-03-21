@@ -144,8 +144,9 @@ void init_reservedwords(Vector *array)
 	vec_push(array, new_word("return", 6, TK_RETURN));
 	vec_push(array, new_word("sizeof", 6, TK_SIZEOF));
 	vec_push(array, new_word("while", 5, TK_WHILE));
+	vec_push(array, new_word("char", 4, TK_CHAR));
 	vec_push(array, new_word("else", 4, TK_ELS));
-	vec_push(array, new_word("for", 3, TK_FOR));
 	vec_push(array, new_word("int", 3, TK_INT));
+	vec_push(array, new_word("for", 3, TK_FOR));
 	vec_push(array, new_word("if", 2, TK_IF));
 }

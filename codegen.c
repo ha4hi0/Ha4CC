@@ -3,6 +3,14 @@
 
 const char *reg_name(int byte, int i)
 {
+	const char *regl[] = {
+		"al", "dil", "dil", "dl", "cl", "d8b", "d9b"
+	};
+
+	const char *regx[] = {
+		"ax", "di", "si", "dx", "cx", "r8w", "r9w"
+	};
+
 	const char *ereg[] = {
 		"eax", "edi", "esi", "edx", "ecx", "r8d", "r9d"
 	};
@@ -12,9 +20,12 @@ const char *reg_name(int byte, int i)
 	};
 
 	switch(byte){
+		case 1:
+			return regl[i];
+		case 2:
+			return regx[i];
 		case 4:
 			return ereg[i];
-			
 		case 8:
 			return rreg[i];
 	}

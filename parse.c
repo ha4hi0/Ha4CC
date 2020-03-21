@@ -59,17 +59,20 @@ Node *new_node_ident(TokenSeq *seq)
 
 Type *parse_type(TokenSeq *seq)
 {
-	Type *ret;
+	Type *ret=NULL;
 	if(consume(TK_INT, seq)){
 		ret = type_int();
-		while(consume('*', seq)){
-			Type *tmp;
-			tmp = ptr2type(ret);
-			ret = tmp;
-		}
+	}else if(consume(TK_CHAR, seq)){
+		ret = type_char();
+	}else{
 		return ret;
 	}
-	return NULL;
+	while(consume('*', seq)){
+		Type *tmp;
+		tmp = ptr2type(ret);
+		ret = tmp;
+	}
+	return ret;
 }
 
 Vector *parse_parameter_list(TokenSeq *seq)

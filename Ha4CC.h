@@ -59,6 +59,7 @@ enum{
     TK_WHILE,
     TK_EOF,       // EOF token
 	TK_INT,
+	TK_CHAR,
 	TK_SIZEOF,
 };
 
@@ -111,6 +112,7 @@ enum{
 enum TY{
 	TY_INT,
 	TY_PTR,
+	TY_CHAR,
 	TY_ARRAY,
 };
 
@@ -235,6 +237,7 @@ void start_gen(Vector *asts);
 Vector *analyze(Vector *code);
 Node *analyze_detail(Scope *env, Node *node);
 Type *type_int();
+Type *type_char();
 Type *ptr2type(Type *type);
 Type *ary2type(Type *type, int len);
 int match_type(Node *node, enum TY ty);
