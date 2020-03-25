@@ -96,6 +96,27 @@ Vector* tokenize(){
             continue;
         }
 
+		if(*p == '"'){
+			Token *t = (Token *)malloc(sizeof(Token));
+			t->ty = TK_STRING;
+			t->input = p;
+			p++;
+			Vector *string = new_vector();
+			while(*p != '"'){
+				vec_push(string, (void *)*p);
+				p++;
+			}
+			p++;
+			char *ret = malloc(string->len+1);
+			for(int i=0; i<string->len; i++){
+				ret[i] = (char)(string->data[i]);
+			}
+			ret[string->len] = '\0';
+			t->sval = ret;
+			vec_push(tokens, t);
+			continue;
+		}
+
         if(isdigit(*p)){
             Token *t = (Token *)malloc(sizeof(Token));
             t->ty = TK_NUM;

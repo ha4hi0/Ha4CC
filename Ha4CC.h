@@ -61,6 +61,7 @@ enum{
 	TK_INT,
 	TK_CHAR,
 	TK_SIZEOF,
+	TK_STRING,
 };
 
 // Token type
@@ -69,6 +70,7 @@ typedef struct{
 	union{
     	int val;        // value of TK_NUM token
     	char *name;     // name of TK_IDENT token
+		char *sval;		// TK_STRING
 	};
     char *input;    // Token strings for error message
 }Token;
@@ -107,6 +109,7 @@ enum{
 	ND_EMPTY,
 	ND_SIZEOF,
 	ND_ARY2PTR,
+	ND_STRING,
 };
 
 enum TY{
@@ -178,6 +181,7 @@ struct Node{
 		struct{
 			char *varname;
         	int offset;
+			char *sval; // ND_STRING
 		};
 
 		Vector *stmts;
@@ -231,10 +235,10 @@ void gen_while(Node *node);
 void gen_block(Node *node);
 void gen_funccall(Node *node);
 void gen_funcdef(Node *node);
-void start_gen(Vector *asts);
+void start_gen(Vector *asts, Scope *env);
 
 // analyze.c
-Vector *analyze(Vector *code);
+Vector *analyze(Vector *code, Scope *env);
 Node *analyze_detail(Scope *env, Node *node);
 Type *type_int();
 Type *type_char();
@@ -247,7 +251,6 @@ int match_type2(Node *lhs, Node *rhs, enum TY lty, enum TY rty);
 struct Scope{
 	struct Scope *parent;
 	Map *symbols;
-	//Vector *local_vars;
 	int stack_idx;
 	int *max_idx;
 };
@@ -258,6 +261,7 @@ Node *get_var(Scope *env, const char *name);
 Node *get_func(Scope *env, const char *name);
 Node *add_symbol(Scope *env, const char *name, Node *node);
 Node *add_var(Scope *env, Node *node);
+Node *add_gvar(Scope *env, Node *node);
 Node *add_func(Scope *env, Node *node);
 
 // main.c

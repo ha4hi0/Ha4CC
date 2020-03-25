@@ -365,6 +365,10 @@ Node *term(TokenSeq *seq)
         node = new_node_num(a);
     }else if(get_token(seq)->ty == TK_IDENT){
 		node = new_node_ident(seq);
+	}else if(get_token(seq)->ty == TK_STRING){
+		node = malloc(sizeof(Node));
+		node->ty = ND_STRING;
+		node->sval = next(seq)->sval;
     }else{
         error_at(get_token(seq)->input, 
                 "unexpected token: expected a number");

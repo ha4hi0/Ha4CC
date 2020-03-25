@@ -68,6 +68,8 @@ Node *add_var(Scope *env, Node *node)
 			env->stack_idx -= node->type->byte;
 		}
 		var->offset = env->stack_idx;
+	}else{
+		var = node;
 	}
 	if(env->stack_idx < *(env->max_idx)){
 		*(env->max_idx) = env->stack_idx;
@@ -75,6 +77,14 @@ Node *add_var(Scope *env, Node *node)
 	var->type = node->type;
 	var->varname = node->varname;
 	add_symbol(env, node->varname, var);
+	return node;
+}
+
+Node *add_gvar(Scope *env, Node *node)
+{
+	Scope *tmp = env;
+	while(tmp->parent != NULL)tmp=tmp->parent;
+	add_var(tmp, node);
 	return node;
 }
 

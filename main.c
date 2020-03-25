@@ -17,8 +17,9 @@ int main(int argc, char **argv){
     }
     tokens = tokenize();
 	Vector *asts = program(tokens);
-	asts = analyze(asts);
-	start_gen(asts);
+	Scope *top=new_scope(NULL);
+	asts = analyze(asts, top);
+	start_gen(asts, top);
     return 0;
 }
 

@@ -87,12 +87,40 @@ void gen(Node *node){
         	return;
 
 		case ND_LVAR:
-			printf("    mov %s, [rbp%d]\n", reg_name(node->type->byte, 0), node->offset);
+			switch(node->type->byte){
+				case 1:
+					//printf("    movsx %s, [rbp%d]\n", reg_name(1, 0), node->offset);
+					printf("    lea rax, [rbp%d]\n", node->offset);
+					printf("    movsx eax, BYTE PTR [rax]\n");
+					break;
+				case 2:
+					//printf("    movsx %s, [rbp%d]\n", reg_name(2, 0), node->offset);
+					printf("    lea rax, [rbp%d]\n", node->offset);
+					printf("    movsx eax, [rbp%d]\n", node->offset);
+					break;
+				default:
+					printf("    mov %s, [rbp%d]\n", reg_name(node->type->byte, 0), node->offset);
+					break;
+			}
 			printf("    push rax\n");
         	return;
 
 		case ND_GVAR:
-			printf("    mov %s, %s[rip]\n", reg_name(node->type->byte, 0), node->varname);
+			switch(node->type->byte){
+				case 1:
+					//printf("    movsx %s, %s[rip]\n", reg_name(1, 0), node->varname);
+					printf("    lea rax, %s[rip]\n", node->varname);
+					printf("    movsx eax, BYTE PTR [rax]\n");
+					break;
+				case 2:
+					//printf("    movsx %s, %s[rip]\n", reg_name(2, 0), node->varname);
+					printf("    lea rax, %s[rip]\n", node->varname);
+					printf("    movsx eax, %s[rip]\n", node->varname);
+					break;
+				default:
+					printf("    mov %s, %s[rip]\n", reg_name(node->type->byte, 0), node->varname);
+					break;
+			}
 			printf("    push rax\n");
 			return;
 
@@ -142,7 +170,18 @@ void gen(Node *node){
 		case ND_DEREF:
 			gen(node->lhs);
 			printf("    pop rax\n");
-			printf("    mov rax, [rax]\n");
+			//printf("    mov rax, [rax]\n");
+			switch(node->type->byte){
+				case 1:
+					printf("    movsx rax, BYTE PTR [rax]\n");
+					break;
+				case 2:
+					printf("    movsx rax, WORD PTR [rax]\n");
+					break;
+				default:
+					printf("    mov rax, [rax]\n");
+					break;
+			}
 			break;
 
         case '+':
@@ -261,6 +300,7 @@ void gen_if(Node *node)
         printf("    cmp rax, 0\n");
         printf("    je .Lelse%d\n", Lelse);
         gen(node->then);
+		printf("    jmp .Lend%d\n", Lend);
         printf(".Lelse%d:\n", Lelse);
         gen(node->els);
         printf(".Lend%d:\n", Lend);
@@ -355,10 +395,25 @@ void gen_funcdef(Node *node)
 	printf("    ret\n");
 }
 
-void start_gen(Vector *asts)
+void gen_string(Scope *env)
+{
+	printf(".data\n");
+	for(int i=0; i<env->symbols->vals->len; i++){
+		Node *node = env->symbols->vals->data[i];
+		if(node->ty == ND_GVAR && node->sval != NULL){
+			printf("%s:\n", node->varname);
+			printf("    .string \"%s\"\n", node->sval);
+		}
+	}
+	printf(".text\n");
+}
+
+void start_gen(Vector *asts, Scope *env)
 {
 	printf(".intel_syntax noprefix\n");
 	printf(".global main\n");
+
+	gen_string(env);
 
     // generate codes
     for(int i=0; asts->data[i]; i++){

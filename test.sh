@@ -66,5 +66,8 @@ try 5 "int a; int main(){a=5; return a;}"
 try 100 "int a; int foo(int *x){*x=100; int a; a=10; return a;} int main(){int *x; x=&a; foo(x); return a;}"
 try 45 "int a[10]; int init(){int i; for(i=1; i<10; i=i+1){a[i]=a[i-1]+i;} return 0;} int main(){init(); return a[9];}"
 try 3 "int main(){char x[3]; x[0]=-1; x[1]=2; x[2]=-5; int y; y=1; return x[1]+y;}"
+try 104 'int main(){char *str; str="hoge"; return str[0];}'
+try 1 'int main(){int a; if(1>0){a=1;}else{a=0;} return a;}'
+try 99 'int main(){char *a; a="abc"; char *b; b="zyx"; char *str; if(a[0]<b[0]){str=a;}else{str=b;} return str[2];}'
 
 echo OK

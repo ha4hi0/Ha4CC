@@ -1,6 +1,8 @@
 // analyze.c
 #include "Ha4CC.h"
 
+int string_literal_label;
+
 void swap(Node **lhs, Node **rhs)
 {
 	Node *tmp;
@@ -167,7 +169,7 @@ Node *analyze_detail(Scope *env, Node *node)
 			break;
         case ND_LVAR:
 		case ND_GVAR:
-			node = get_var(env, node->varname);
+			node = ary2ptr(get_var(env, node->varname));
 			if(node == NULL) error("%s is not declared", node->varname);
 			break;
 	    case ND_FUNCCALL:
@@ -205,14 +207,26 @@ Node *analyze_detail(Scope *env, Node *node)
 			node->type = type_int();
 			node->ty = ND_NUM;
 			node->val = tmp;
+			break;
+		}
+		case ND_STRING:
+		{
+			char *str;
+			sprintf(str, ".LC%d", string_literal_label++);
+			node->varname = str;
+			node->type = ary2type(type_char(), sizeof(node->sval)+1);
+			node->ty = ND_GVAR;
+			add_gvar(env, node);
+			node = ary2ptr(node);
+			break;
 		}
 	}
 	return node;
 }
 
-Vector *analyze(Vector *code)
+Vector *analyze(Vector *code, Scope *env)
 {
-	Scope *env = new_scope(NULL);
+	//Scope *env = new_scope(NULL);
 	for(int i=0; code->data[i]!=NULL; i++){
 		vec_set(code, i, analyze_detail(env, (Node *)(code->data[i])));
 	}
