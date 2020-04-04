@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
 void DOKO(int i); // for debugging
 
@@ -263,6 +264,9 @@ Node *add_symbol(Scope *env, const char *name, Node *node);
 Node *add_var(Scope *env, Node *node);
 Node *add_gvar(Scope *env, Node *node);
 Node *add_func(Scope *env, Node *node);
+
+// input.c
+char *read_file(char *path);
 
 // main.c
 // program inputted

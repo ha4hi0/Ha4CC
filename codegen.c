@@ -29,6 +29,7 @@ const char *reg_name(int byte, int i)
 		case 8:
 			return rreg[i];
 	}
+	exit(1);
 }
 
 void gen(Node *node){
@@ -365,11 +366,13 @@ void gen_funccall(Node *node)
 	for(int i=0; i<node->callargs->len; i++){
 		printf("    pop %s\n", reg_name(8, node->callargs->len-i));
 	}
+	printf("    push 0\n");
+	printf("    pop rax\n");
 	printf("    mov r10, rsp\n");
 	printf("    and rsp, -16\n");
 	printf("    push r10\n");
 	printf("    push r11\n");
-	printf("    call %s\n", node->funcname);
+	printf("    call %s@plt\n", node->funcname);
 	printf("    pop r11\n");
 	printf("    pop r10\n");
 	printf("    mov rsp, r10\n");

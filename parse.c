@@ -6,6 +6,7 @@ TokenSeq *new_tokenseq(Vector *tokens)
 	TokenSeq *ret = malloc(sizeof(TokenSeq));
 	ret->tokens = tokens;
 	ret->pos = 0;
+	return ret;
 }
 
 char *consume_token_name(TokenSeq *seq)
@@ -152,7 +153,6 @@ Node *top_level(TokenSeq *seq)
 		node->ty = ND_FUNCDEF;
 		node->args = parse_parameter_list(seq);
 		node->ret_type = ret;
-		//expect_token(')', seq);
 		node->defbody = new_node_block(seq);
 	}else{
 		node->varname = varname;
@@ -284,7 +284,6 @@ Node *equality(TokenSeq *seq)
 Node *relational(TokenSeq *seq)
 {
     Node *node = add(seq);
-	int ND;
 
 	while(1){
 	    if(consume('<', seq)){

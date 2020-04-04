@@ -2,6 +2,8 @@
 
 #include "Ha4CC.h"
 
+char *filename;
+
 // report error
 void error(char *fmt, ...){
     va_list ap;

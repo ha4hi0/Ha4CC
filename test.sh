@@ -4,7 +4,8 @@ try(){
     expected="$1"
     input="$2"
 
-    ./Ha4CC "$input" > tmp.s
+	echo "$input" > tmp.c
+    ./Ha4CC  tmp.c > tmp.s
 	cc -c testutil.c
     gcc -g -o tmp tmp.s testutil.o
     ./tmp

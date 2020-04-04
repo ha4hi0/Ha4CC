@@ -211,14 +211,14 @@ Node *analyze_detail(Scope *env, Node *node)
 		}
 		case ND_STRING:
 		{
-			char *str;
-			sprintf(str, ".LC%d", string_literal_label++);
-			node->varname = str;
+			Node *ret;
+			node->varname = malloc(sizeof(256));
+			sprintf(node->varname, ".LC%d", string_literal_label++);
 			node->type = ary2type(type_char(), sizeof(node->sval)+1);
 			node->ty = ND_GVAR;
 			add_gvar(env, node);
-			node = ary2ptr(node);
-			break;
+			ret = ary2ptr(node);
+			return ret;
 		}
 	}
 	return node;
@@ -226,7 +226,6 @@ Node *analyze_detail(Scope *env, Node *node)
 
 Vector *analyze(Vector *code, Scope *env)
 {
-	//Scope *env = new_scope(NULL);
 	for(int i=0; code->data[i]!=NULL; i++){
 		vec_set(code, i, analyze_detail(env, (Node *)(code->data[i])));
 	}

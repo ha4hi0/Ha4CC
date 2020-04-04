@@ -48,7 +48,10 @@ Node *get_func(Scope *env, const char *name)
 
 Node *add_symbol(Scope *env, const char *name, Node *node)
 {
-	if(map_get(env->symbols, name) != NULL){
+	Node *tmp = map_get(env->symbols, name);
+	//if(map_get(env->symbols, name) != NULL){
+	if(tmp != NULL){
+		//fprintf(stderr, "%s %s %s\n", tmp->varname, node->varname, name);
 		error("%s: same symbol already exist.", node->varname);
 	}
 	map_put(env->symbols, name, node);
