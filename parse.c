@@ -38,7 +38,9 @@ Node *new_node_block(TokenSeq *seq)
 
 Node *new_node_ident(TokenSeq *seq)
 {
-	char *varname = consume_token_name(seq);
+	char *varname = malloc(sizeof(char)*256);
+	strcpy(varname, consume_token_name(seq));
+	//char *varname = consume_token_name(seq);
 	Node *node = (Node *)(malloc(sizeof(Node)));
 	if(consume('(', seq)){
 		node->ty = ND_FUNCCALL;
@@ -54,6 +56,9 @@ Node *new_node_ident(TokenSeq *seq)
 	}else{
 		node->ty = ND_LVAR;
 		node->varname = varname;
+		//node->varname = malloc(sizeof(char)*256);
+		//strcpy(node->varname, varname);
+		//fprintf(stderr, "%s\n", node->varname);
 	}
 	return node;
 }
@@ -84,7 +89,8 @@ Vector *parse_parameter_list(TokenSeq *seq)
 		if(ret == NULL){
 			error("argument must have type specifier.");
 		}
-		char *argname = consume_token_name(seq);
+		char *argname = malloc(sizeof(char)*256);
+		strcpy(argname, consume_token_name(seq));
 		Node *lvar = malloc(sizeof(Node));
 		lvar->ty = ND_LVAR_DECL;
 		lvar->type = ret;
@@ -179,6 +185,9 @@ Node *stmt(TokenSeq *seq)
     	node = malloc(sizeof(Node));
 		next(seq);
         node->ty = ND_IF;
+		node->cond = NULL;
+		node->then = NULL;
+		node->els = NULL;
         expect_token('(', seq);
         node->cond = expr(seq);
         expect_token(')', seq);
@@ -191,6 +200,10 @@ Node *stmt(TokenSeq *seq)
     	node = malloc(sizeof(Node));
 		next(seq);
         node->ty = ND_FOR;
+		node->init = NULL;
+		node->for_cond = NULL;
+		node->iter = NULL;
+		node->body = NULL;
         expect_token('(', seq);
         if(!consume(';', seq)){
             node->init = expr(seq);
@@ -234,7 +247,9 @@ Node *stmt(TokenSeq *seq)
 	    type = parse_type(seq);
 	    node = malloc(sizeof(Node));
 	    if(type != NULL){
-	    	char *varname = consume_token_name(seq);
+			char *varname = malloc(sizeof(char)*256);
+	    	//char *varname = consume_token_name(seq);
+			strcpy(varname, consume_token_name(seq));
 	    	node->ty = ND_LVAR_DECL;
 			if(consume('[', seq)){
 				int len=expect_token(TK_NUM, seq)->val;

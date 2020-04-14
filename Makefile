@@ -10,4 +10,4 @@ test: Ha4CC
 	./test.sh
 
 clean:
-	rm -f Ha4CC *.o *~ tmp*
+	rm -f Ha4CC *.o *~ _test.s _test

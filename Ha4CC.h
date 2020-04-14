@@ -229,7 +229,7 @@ Node *new_node_lvar_decl(Type *type, char *name);
 Node *ary2ptr(Node *node);
 
 // codegen.c
-void gen(Node *node);
+int gen(Node *node);
 void gen_if(Node *node);
 void gen_for(Node *node);
 void gen_while(Node *node);

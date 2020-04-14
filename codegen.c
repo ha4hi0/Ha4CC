@@ -32,13 +32,13 @@ const char *reg_name(int byte, int i)
 	exit(1);
 }
 
-void gen(Node *node){
+int gen(Node *node){
 	switch(node->ty){
 		case ND_EMPTY:
-			return;
+			return 0;
 
 		case ND_LVAR_DECL:
-			return;
+			return 0;
 
 		case ND_GVAR_DECL:
 			printf(".data\n");
@@ -49,31 +49,31 @@ void gen(Node *node){
 				printf("    .zero %d\n", node->type->byte);
 			}
 			printf(".text\n");
-			return;
+			return 0;
 
 		case ND_FUNCDEF:
 			gen_funcdef(node);
-			return;
+			return 0;
 
 		case ND_FUNCCALL:
 			gen_funccall(node);
-			return;
+			return 0;
 
 		case ND_IF:
         	gen_if(node);
-        	return;
+        	return 0;
 
 		case ND_BLOCK:
 			gen_block(node);
-			return;
+			return 0;
 
 		case ND_FOR:
 			gen_for(node);
-			return;
+			return 0;
 
 		case ND_WHILE:
 			gen_while(node);
-			return;
+			return 0;
 
 		case ND_RETURN:
         	gen(node->lhs);
@@ -81,11 +81,11 @@ void gen(Node *node){
         	printf("    mov rsp, rbp\n");
         	printf("    pop rbp\n");
         	printf("    ret\n");
-        	return;
+        	return 0;
 
 		case ND_NUM:
         	printf("    push %d\n", node->val);
-        	return;
+        	return 1;
 
 		case ND_LVAR:
 			switch(node->type->byte){
@@ -104,7 +104,7 @@ void gen(Node *node){
 					break;
 			}
 			printf("    push rax\n");
-        	return;
+        	return 1;
 
 		case ND_GVAR:
 			switch(node->type->byte){
@@ -123,7 +123,7 @@ void gen(Node *node){
 					break;
 			}
 			printf("    push rax\n");
-			return;
+			return 0;
 
 		case ND_ARY2PTR:
 			if(node->ary->ty == ND_GVAR){
@@ -134,7 +134,7 @@ void gen(Node *node){
 				printf("    sub rax, %d\n", -node->ary->offset);
 				printf("    push rax\n");
 			}
-			return;
+			return 0;
 
 		case '=':
 			gen(node->rhs);
@@ -153,7 +153,7 @@ void gen(Node *node){
 				printf("    mov [rbp%d], %s\n", node->lhs->offset, reg_name(node->lhs->type->byte, 1));
 				printf("    push rdi\n");
 			}
-        	return;
+        	return 1;
 
 		case ND_ADDR:
 			if(node->lhs->ty == ND_DEREF){
@@ -166,7 +166,7 @@ void gen(Node *node){
 				printf("    sub rax, %d\n", -node->lhs->offset);
 				printf("    push rax\n");
 			}
-			return;
+			return 1;
 
 		case ND_DEREF:
 			gen(node->lhs);
@@ -277,6 +277,7 @@ void gen(Node *node){
             break;
 	}
     printf("    push rax\n");
+	return 1;
 }
 
 
@@ -352,8 +353,7 @@ void gen_block(Node *node)
 	for(int i=0; i<len-1; i++){
 		Node *tmp = (Node *)(node->stmts->data[i]);
 		if(tmp->ty == ND_EMPTY || tmp->ty == ND_LVAR_DECL)continue;
-		gen(tmp);
-		printf("    pop rax\n");
+		if(gen(tmp))printf("    pop rax\n");
 	}
 	gen((Node *)(node->stmts->data[len-1]));
 }
