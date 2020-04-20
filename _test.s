@@ -2716,6 +2716,30 @@ test51:
     mov rsp, rbp
     pop rbp
     ret
+test52:
+    push rbp
+    mov rbp, rsp
+    sub rsp, 0
+    push 55
+    pop rax
+    mov rsp, rbp
+    pop rbp
+    ret
+    mov rsp, rbp
+    pop rbp
+    ret
+test53:
+    push rbp
+    mov rbp, rsp
+    sub rsp, 0
+    push 53
+    pop rax
+    mov rsp, rbp
+    pop rbp
+    ret
+    mov rsp, rbp
+    pop rbp
+    ret
 main:
     push rbp
     mov rbp, rsp
@@ -4106,6 +4130,60 @@ main:
     push r10
     push r11
     call test51@plt
+    pop r11
+    pop r10
+    mov rsp, r10
+    push rax
+    pop rdx
+    pop rsi
+    pop rdi
+    push 0
+    pop rax
+    mov r10, rsp
+    and rsp, -16
+    push r10
+    push r11
+    call try@plt
+    pop r11
+    pop r10
+    mov rsp, r10
+    push rax
+    push 52
+    push 55
+    push 0
+    pop rax
+    mov r10, rsp
+    and rsp, -16
+    push r10
+    push r11
+    call test52@plt
+    pop r11
+    pop r10
+    mov rsp, r10
+    push rax
+    pop rdx
+    pop rsi
+    pop rdi
+    push 0
+    pop rax
+    mov r10, rsp
+    and rsp, -16
+    push r10
+    push r11
+    call try@plt
+    pop r11
+    pop r10
+    mov rsp, r10
+    push rax
+    push 53
+    push 53
+    push 0
+    pop rax
+    mov r10, rsp
+    and rsp, -16
+    push r10
+    push r11
+    call test53@plt
     pop r11
     pop r10
     mov rsp, r10

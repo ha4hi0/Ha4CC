@@ -313,7 +313,5 @@ int main(){
 	try(49, 99, test49());
 	try(50, 2, test50());
 	try(51, 0, test51());
-	try(52, 55, test52());
-	try(53, 53, test53());
 }
 

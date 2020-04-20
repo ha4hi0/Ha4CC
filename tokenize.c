@@ -74,6 +74,14 @@ Vector* tokenize(){
 			continue;
 		}
 
+		// skip block comments
+		if(strncmp(p, "/*", 2) == 0){
+			char *q = strstr(p+2, "*/");
+			if(!q)error_at(p, "comment is not closed.");
+			p = q+2;
+			continue;
+		}
+
 		Word *word=is_reservedword(p);
 		if(word){
 			Token *t = (Token *)malloc(sizeof(Token));
