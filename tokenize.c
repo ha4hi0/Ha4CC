@@ -67,6 +67,13 @@ Vector* tokenize(){
             continue;
         }
 
+		// skip line comments
+		if(strncmp(p, "//", 2) == 0){
+			p += 2;
+			while(*p != '\n')p++;
+			continue;
+		}
+
 		Word *word=is_reservedword(p);
 		if(word){
 			Token *t = (Token *)malloc(sizeof(Token));

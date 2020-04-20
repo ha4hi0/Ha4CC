@@ -229,6 +229,20 @@ int test49(){
 	char *a; a="abc"; char *b; b="zyx"; char *str; if(a[0]<b[0]){str=a;}else{str=b;} return str[2];
 }
 
+int test50(){
+	// line comment---
+	return 2;
+}
+
+int test51(){
+	// line comment
+	return 
+	// line
+		0
+	// comment
+		;
+}
+
 int main(){
 	try(0, 0, test0());
 	try(1, 42, test1());
@@ -280,5 +294,7 @@ int main(){
 	try(47, 104, test47());
 	try(48, 1, test48());
 	try(49, 99, test49());
+	try(50, 2, test50());
+	try(51, 0, test51());
 }
 
