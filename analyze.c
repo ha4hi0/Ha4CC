@@ -100,6 +100,14 @@ Node *analyze_detail(Scope *env, Node *node)
 			}
 			node->type = node->lhs->type;
 			break;
+		case '%':
+			node->rhs = analyze_detail(env, node->rhs);
+			node->lhs = analyze_detail(env, node->lhs);
+			if(!(match_type(node->lhs, TY_INT) && match_type(node->rhs, TY_INT))){
+				error("invalid operand to binary %");
+			}
+			node->type = TY_INT;
+			break;
 		case '=':
 			node->rhs = analyze_detail(env, node->rhs);
 			node->lhs = analyze_detail(env, node->lhs);

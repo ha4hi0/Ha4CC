@@ -40,7 +40,6 @@ Node *new_node_ident(TokenSeq *seq)
 {
 	char *varname = malloc(sizeof(char)*256);
 	strcpy(varname, consume_token_name(seq));
-	//char *varname = consume_token_name(seq);
 	Node *node = (Node *)(malloc(sizeof(Node)));
 	if(consume('(', seq)){
 		node->ty = ND_FUNCCALL;
@@ -56,9 +55,6 @@ Node *new_node_ident(TokenSeq *seq)
 	}else{
 		node->ty = ND_LVAR;
 		node->varname = varname;
-		//node->varname = malloc(sizeof(char)*256);
-		//strcpy(node->varname, varname);
-		//fprintf(stderr, "%s\n", node->varname);
 	}
 	return node;
 }
@@ -248,7 +244,6 @@ Node *stmt(TokenSeq *seq)
 	    node = malloc(sizeof(Node));
 	    if(type != NULL){
 			char *varname = malloc(sizeof(char)*256);
-	    	//char *varname = consume_token_name(seq);
 			strcpy(varname, consume_token_name(seq));
 	    	node->ty = ND_LVAR_DECL;
 			if(consume('[', seq)){
@@ -339,7 +334,9 @@ Node *mul(TokenSeq *seq)
             node = new_node('*', node, unary(seq));
         }else if(consume('/', seq)){
             node = new_node('/', node, unary(seq));
-        }else{
+        }else if(consume('%', seq)){
+			node = new_node('%', node, unary(seq));
+		}else{
             return node;
         }
     }

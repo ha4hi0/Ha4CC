@@ -236,6 +236,16 @@ int gen(Node *node){
             printf("    idiv edi\n");
             break;
 
+		case '%':
+			gen(node->lhs);
+			gen(node->rhs);
+			printf("    pop rdi\n");
+    		printf("    pop rax\n");
+			printf("    cltd\n");
+            printf("    idiv edi\n");
+			printf("    push rdx\n");
+			return 1;
+
         case '<':
     		gen(node->lhs);
     		gen(node->rhs);

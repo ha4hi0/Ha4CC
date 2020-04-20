@@ -24,7 +24,7 @@ Word *is_reservedword(char *key)
 int is_oneletteroperator(char c)
 {
 	const char ops[] = {
-        '+' ,'-' ,'*' ,'/' ,')' ,'(' ,'<' ,'>' ,'=', ';', '{', '}', ',', '&', '[', ']'
+        '+' ,'-' ,'*' ,'/' ,'%' ,')' ,'(' ,'<' ,'>' ,'=', ';', '{', '}', ',', '&', '[', ']'
 	};
 
 	for(int i=0; i<sizeof(ops)/sizeof(char); i++){

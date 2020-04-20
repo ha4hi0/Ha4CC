@@ -260,6 +260,14 @@ int test53(){
 	*/
 }
 
+int test54(){
+	return 33%4;
+}
+
+int test55(){
+	return -111111%23456;
+}
+
 int main(){
 	try(0, 0, test0());
 	try(1, 42, test1());
@@ -315,5 +323,7 @@ int main(){
 	try(51, 0, test51());
 	try(52, 55, test52());
 	try(53, 53, test53());
+	try(54, 1, test54());
+	try(55, -17287, test55());
 }
 
