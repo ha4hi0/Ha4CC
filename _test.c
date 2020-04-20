@@ -268,6 +268,22 @@ int test55(){
 	return -111111%23456;
 }
 
+int test56(){
+	int a;
+	a = 5;
+	int b;
+	b = -10;
+	int c;
+	c = 20;
+	if(a < b && a < c){
+		return a;
+	}else if(b < a && b < c){
+		return b;
+	}else{
+		return c;
+	}
+}
+
 int main(){
 	try(0, 0, test0());
 	try(1, 42, test1());
@@ -325,5 +341,6 @@ int main(){
 	try(53, 53, test53());
 	try(54, 1, test54());
 	try(55, -17287, test55());
+	try(56, -10, test56());
 }
 

@@ -63,6 +63,7 @@ enum{
 	TK_CHAR,
 	TK_SIZEOF,
 	TK_STRING,
+	TK_LOG_AND,
 };
 
 // Token type
@@ -111,6 +112,7 @@ enum{
 	ND_SIZEOF,
 	ND_ARY2PTR,
 	ND_STRING,
+	ND_LOG_AND,
 };
 
 enum TY{
@@ -207,6 +209,7 @@ Node *top_level(TokenSeq *seq);
 Node *stmt(TokenSeq *seq);
 Node *expr(TokenSeq *seq);
 Node *assign(TokenSeq *seq);
+Node *logical_and(TokenSeq *seq);
 Node *equality(TokenSeq *seq);
 Node *relational(TokenSeq *seq);
 Node *add(TokenSeq *seq);

@@ -269,11 +269,24 @@ Node *expr(TokenSeq *seq)
 
 Node *assign(TokenSeq *seq)
 {
-    Node *node = equality(seq);
+    Node *node = logical_and(seq);
     if(consume('=', seq)){
         node = new_node('=', node, assign(seq));
     }
     return node;
+}
+
+Node *logical_and(TokenSeq *seq)
+{
+	Node *node = equality(seq);
+
+	while(1){
+		if(consume(TK_LOG_AND, seq)){
+			node = new_node(ND_LOG_AND, node, equality(seq));
+		}else{
+			return node;
+		}
+	}
 }
 
 Node *equality(TokenSeq *seq)
