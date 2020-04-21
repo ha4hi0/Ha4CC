@@ -288,6 +288,34 @@ int test57(){
 	return 0||1&&1||0&&1&&2;
 }
 
+int test58(){
+	int a;
+	a=-10;
+	a += 68;
+	return a;
+}
+
+int test59(){
+	int b;
+	b=30;
+	b-=-29;
+	return b;
+}
+
+int test60(){
+	int c;
+	c=12;
+	c*=5;
+	return c;
+}
+
+int test61(){
+	int d;
+	d=3905;
+	d/=63;
+	return d;
+}
+
 int main(){
 	try(0, 0, test0());
 	try(1, 42, test1());
@@ -347,5 +375,9 @@ int main(){
 	try(55, -17287, test55());
 	try(56, -10, test56());
 	try(57, 1, test57());
+	try(58, 58, test58());
+	try(59, 59, test59());
+	try(60, 60, test60());
+	try(61, 61, test61());
 }
 

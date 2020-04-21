@@ -65,6 +65,10 @@ enum{
 	TK_STRING,
 	TK_LOG_AND,
 	TK_LOG_OR,
+	TK_ADD_EQ,
+	TK_SUB_EQ,
+	TK_MUL_EQ,
+	TK_DIV_EQ,
 };
 
 // Token type

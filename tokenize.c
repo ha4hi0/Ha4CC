@@ -36,11 +36,11 @@ int is_oneletteroperator(char c)
 int is_twoletteroperator(char *c)
 {
 	const char *ops[] = {
-		"==", "!=", "<=", ">=", "&&", "||"
+		"==", "!=", "<=", ">=", "&&", "||", "+=", "-=", "*=", "/="
 	};
 
 	int vals[] = {
-		TK_EQ, TK_NE, TK_LE, TK_GE, TK_LOG_AND, TK_LOG_OR
+		TK_EQ, TK_NE, TK_LE, TK_GE, TK_LOG_AND, TK_LOG_OR, TK_ADD_EQ, TK_SUB_EQ, TK_MUL_EQ, TK_DIV_EQ
 	};
 
 	for(int i=0; i<sizeof(vals)/sizeof(int); i++){

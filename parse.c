@@ -269,11 +269,27 @@ Node *expr(TokenSeq *seq)
 
 Node *assign(TokenSeq *seq)
 {
-    Node *node = logical_or(seq);
+    Node *lnode = logical_or(seq);
     if(consume('=', seq)){
-        node = new_node('=', node, assign(seq));
-    }
-    return node;
+        lnode = new_node('=', lnode, assign(seq));
+    }else if(consume(TK_ADD_EQ, seq)){
+		Node *rnode = assign(seq);
+		rnode = new_node('+', lnode, rnode);
+		lnode = new_node('=', lnode, rnode);
+    }else if(consume(TK_SUB_EQ, seq)){
+		Node *rnode = assign(seq);
+		rnode = new_node('-', lnode, rnode);
+		lnode = new_node('=', lnode, rnode);
+    }else if(consume(TK_MUL_EQ, seq)){
+		Node *rnode = assign(seq);
+		rnode = new_node('*', lnode, rnode);
+		lnode = new_node('=', lnode, rnode);
+    }else if(consume(TK_DIV_EQ, seq)){
+		Node *rnode = assign(seq);
+		rnode = new_node('/', lnode, rnode);
+		lnode = new_node('=', lnode, rnode);
+	}
+    return lnode;
 }
 
 Node *logical_or(TokenSeq *seq)
