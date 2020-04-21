@@ -140,6 +140,15 @@ Node *analyze_detail(Scope *env, Node *node)
 			if(!(match_type2(node->lhs, node->rhs, TY_INT, TY_INT))){
 				error("invalid operand to binary &&");
 			}
+			node->type = type_int();
+			break;
+		case ND_LOG_OR:
+			node->lhs = analyze_detail(env, node->lhs);
+			node->rhs = analyze_detail(env, node->rhs);
+			if(!(match_type2(node->lhs, node->rhs, TY_INT, TY_INT))){
+				error("invalid operand to binary ||");
+			}
+			node->type = type_int();
 			break;
         case ND_IF:
         case ND_WHILE:

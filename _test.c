@@ -284,6 +284,10 @@ int test56(){
 	}
 }
 
+int test57(){
+	return 0||1&&1||0&&1&&2;
+}
+
 int main(){
 	try(0, 0, test0());
 	try(1, 42, test1());
@@ -342,5 +346,6 @@ int main(){
 	try(54, 1, test54());
 	try(55, -17287, test55());
 	try(56, -10, test56());
+	try(57, 1, test57());
 }
 

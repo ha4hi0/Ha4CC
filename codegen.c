@@ -306,6 +306,26 @@ int gen(Node *node){
 			printf(".Lend%d:\n", Lend);
 			break;
 			}
+		case ND_LOG_OR:{
+			count_else++;
+			count_end++;
+			int Lelse = count_else;
+			int Lend = count_end;
+			gen(node->lhs);
+    		printf("    pop rax\n");
+			printf("    cmp rax, 1\n");
+			printf("    je .Lelse%d\n", Lelse);
+			gen(node->rhs);
+    		printf("    pop rax\n");
+			printf("    cmp rax, 1\n");
+			printf("    je .Lelse%d\n", Lelse);
+			printf("    push 0\n");
+			printf("    jmp .Lend%d\n", Lend);
+			printf(".Lelse%d:\n", Lelse);
+			printf("    push 1\n");
+			printf(".Lend%d:\n", Lend);
+			break;
+					   }
 	}
     printf("    push rax\n");
 	return 1;
