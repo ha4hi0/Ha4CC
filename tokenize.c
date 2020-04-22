@@ -111,6 +111,7 @@ Vector* tokenize(){
             continue;
         }
 
+		// string literal
 		if(*p == '"'){
 			Token *t = (Token *)malloc(sizeof(Token));
 			t->ty = TK_STRING;
@@ -128,6 +129,25 @@ Vector* tokenize(){
 			}
 			ret[string->len] = '\0';
 			t->sval = ret;
+			vec_push(tokens, t);
+			continue;
+		}
+
+		// character constant
+		if(*p == '\''){
+			Token *t = (Token *)malloc(sizeof(Token));
+			t->ty = TK_NUM;
+			t->input = p;
+			p++;
+			if(*p == '\''){
+				error_at(p, "empty character constant");
+			}
+			t->val = *p;
+			// skip second character and later
+			while(*p != '\''){
+				p++;
+			}
+			p++;
 			vec_push(tokens, t);
 			continue;
 		}

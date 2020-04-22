@@ -316,6 +316,18 @@ int test61(){
 	return d;
 }
 
+int test62(){
+	char a;
+	a='a';
+	return a;
+}
+
+int test63(){
+	char *str;
+	str = "abc";
+	return str[0]=='a'&&str[1]=='b'&&str[2]=='c';
+}
+
 int main(){
 	try(0, 0, test0());
 	try(1, 42, test1());
@@ -379,5 +391,7 @@ int main(){
 	try(59, 59, test59());
 	try(60, 60, test60());
 	try(61, 61, test61());
+	try(62, 97, test62());
+	try(63, 1, test63());
 }
 
