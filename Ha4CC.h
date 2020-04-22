@@ -257,6 +257,7 @@ Type *ptr2type(Type *type);
 Type *ary2type(Type *type, int len);
 int match_type(Node *node, enum TY ty);
 int match_type2(Node *lhs, Node *rhs, enum TY lty, enum TY rty);
+int match_type_int(Node *node);
 
 // scope.c
 struct Scope{

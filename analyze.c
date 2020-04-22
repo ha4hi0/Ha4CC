@@ -58,6 +58,11 @@ int match_type2(Node *lhs, Node *rhs, enum TY lty, enum TY rty)
 	return (match_type(lhs, lty) && match_type(rhs, rty));
 }
 
+int match_type_int(Node *node)
+{
+	return match_type(node, TY_INT) || match_type(node, TY_CHAR);
+}
+
 Node *analyze_detail(Scope *env, Node *node)
 {
 	if(node == NULL) return NULL;
@@ -68,25 +73,19 @@ Node *analyze_detail(Scope *env, Node *node)
 			if(match_type2(node->lhs, node->rhs, TY_PTR, TY_PTR)){
 				error("invalid operand to binary +");
 			}
-			if(match_type2(node->lhs, node->rhs, TY_INT, TY_PTR)){
+			if(match_type_int(node->lhs) && match_type(node->rhs, TY_PTR)){
 				swap(&node->lhs, &node->rhs);
 			}
-			if(match_type2(node->lhs, node->rhs, TY_PTR, TY_INT)){
-				node->type = node->lhs->type;
-			}else{
-				node->type = node->lhs->type;
-			}
+			node->type = node->lhs->type;
 			break;
 		case '-' :
 			node->rhs = ary2ptr(analyze_detail(env, node->rhs));
 			node->lhs = ary2ptr(analyze_detail(env, node->lhs));
-			if(match_type2(node->lhs, node->rhs, TY_INT, TY_PTR)){
+			if(match_type_int(node->lhs) && match_type(node->rhs, TY_PTR)){
 				error("int - ptr is not allowed");
 			}
 			if(match_type2(node->lhs, node->rhs, TY_PTR, TY_PTR)){
 				node->type = type_int();
-			}else if(match_type2(node->lhs, node->rhs, TY_PTR, TY_INT)){
-				node->type = node->lhs->type;
 			}else{
 				node->type = node->lhs->type;
 			}
@@ -103,7 +102,7 @@ Node *analyze_detail(Scope *env, Node *node)
 		case '%':
 			node->rhs = analyze_detail(env, node->rhs);
 			node->lhs = analyze_detail(env, node->lhs);
-			if(!(match_type2(node->lhs, node->rhs, TY_INT, TY_INT))){
+			if(!(match_type_int(node->lhs) && match_type_int(node->rhs))){
 				error("invalid operand to binary %");
 			}
 			node->type = type_int();
@@ -137,7 +136,7 @@ Node *analyze_detail(Scope *env, Node *node)
 		case ND_LOG_AND:
 			node->lhs = analyze_detail(env, node->lhs);
 			node->rhs = analyze_detail(env, node->rhs);
-			if(!(match_type2(node->lhs, node->rhs, TY_INT, TY_INT))){
+			if(!(match_type_int(node->lhs) && match_type_int(node->rhs))){
 				error("invalid operand to binary &&");
 			}
 			node->type = type_int();
@@ -145,7 +144,7 @@ Node *analyze_detail(Scope *env, Node *node)
 		case ND_LOG_OR:
 			node->lhs = analyze_detail(env, node->lhs);
 			node->rhs = analyze_detail(env, node->rhs);
-			if(!(match_type2(node->lhs, node->rhs, TY_INT, TY_INT))){
+			if(!(match_type_int(node->lhs) && match_type_int(node->rhs))){
 				error("invalid operand to binary ||");
 			}
 			node->type = type_int();
