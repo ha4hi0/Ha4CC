@@ -171,6 +171,74 @@ Node *top_level(TokenSeq *seq)
 	return node;
 }
 
+Node *parse_if_stmt(TokenSeq *seq)
+{
+	Node *ret = malloc(sizeof(Node));
+	next(seq);
+	ret->ty = ND_IF;
+	ret->cond = NULL;
+	ret->then = NULL;
+	ret->els = NULL;
+	expect_token('(', seq);
+	ret->cond = expr(seq);
+	expect_token(')', seq);
+	ret->then = stmt(seq);
+	if(consume(TK_ELS, seq)){
+		ret->els = stmt(seq);
+	}
+	return ret;
+}
+
+Node *parse_for_stmt(TokenSeq *seq)
+{
+	Node *ret = malloc(sizeof(Node));
+	next(seq);
+	ret->ty = ND_FOR;
+	ret->init = NULL;
+	ret->for_cond = NULL;
+	ret->iter = NULL;
+	ret->body = NULL;
+	expect_token('(', seq);
+	if(!consume(';', seq)){
+		ret->init = expr(seq);
+		expect_token(';', seq);
+	}
+	if(!consume(';', seq)){
+		ret->for_cond = expr(seq);
+		expect_token(';', seq);
+	}
+	if(!consume(')', seq)){
+		ret->iter = expr(seq);
+		expect_token(')', seq);
+	}
+	ret->body = stmt(seq);
+	return ret;
+}
+
+Node *parse_lvar_decl(TokenSeq *seq, Type *type)
+{
+	Node *node = malloc(sizeof(Node));
+	char *varname = malloc(sizeof(char)*256);
+	strcpy(varname, consume_token_name(seq));
+	if(consume('[', seq)){
+		int len=expect_token(TK_NUM, seq)->val;
+		node->type = ary2type(type, len);
+		expect_token(']', seq);
+	}else{
+		node->type = type;
+	}
+	node->varname = varname;
+
+	if(consume('=', seq)){
+		node->ty = ND_LVAR_DECL_INIT;
+		node->rhs_init = expr(seq);
+	}else{
+		node->ty = ND_LVAR_DECL;
+	}
+    expect_token(';', seq);
+	return node;
+}
+
 Node *stmt(TokenSeq *seq)
 {
     Node *node;
@@ -178,43 +246,9 @@ Node *stmt(TokenSeq *seq)
 	Type *type;
     switch(t->ty){
     case TK_IF:
-    	node = malloc(sizeof(Node));
-		next(seq);
-        node->ty = ND_IF;
-		node->cond = NULL;
-		node->then = NULL;
-		node->els = NULL;
-        expect_token('(', seq);
-        node->cond = expr(seq);
-        expect_token(')', seq);
-        node->then = stmt(seq);
-        if(consume(TK_ELS, seq)){
-            node->els = stmt(seq);
-        }
-        return node;
+		return parse_if_stmt(seq);
     case TK_FOR:
-    	node = malloc(sizeof(Node));
-		next(seq);
-        node->ty = ND_FOR;
-		node->init = NULL;
-		node->for_cond = NULL;
-		node->iter = NULL;
-		node->body = NULL;
-        expect_token('(', seq);
-        if(!consume(';', seq)){
-            node->init = expr(seq);
-            expect_token(';', seq);
-        }
-        if(!consume(';', seq)){
-            node->for_cond = expr(seq);
-            expect_token(';', seq);
-        }
-        if(!consume(';', seq)){
-            node->iter = expr(seq);
-        }
-        expect_token(')', seq);
-        node->body = stmt(seq);
-        return node;
+        return parse_for_stmt(seq);
     case TK_WHILE:
     	node = malloc(sizeof(Node));
 		next(seq);
@@ -241,24 +275,13 @@ Node *stmt(TokenSeq *seq)
 		return node;
     default:
 	    type = parse_type(seq);
-	    node = malloc(sizeof(Node));
 	    if(type != NULL){
-			char *varname = malloc(sizeof(char)*256);
-			strcpy(varname, consume_token_name(seq));
-	    	node->ty = ND_LVAR_DECL;
-			if(consume('[', seq)){
-				int len=expect_token(TK_NUM, seq)->val;
-				node->type = ary2type(type, len);
-				expect_token(']', seq);
-			}else{
-	    		node->type = type;
-			}
-	    	node->varname = varname;
+			node = parse_lvar_decl(seq, type);
 	    }else{
             node = expr(seq);
+        	expect_token(';', seq);
 	    }
-            expect_token(';', seq);
-            return node;
+        return node;
     }
 }
 

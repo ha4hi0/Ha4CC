@@ -49,15 +49,15 @@ int test10(){
 }
 
 int test11(){
-	int a; a=1; return a;
+	int a=1; return a;
 }
 
 int test12(){
-	int b; b=5;int d; d=1;int z; z=3;int a; a=b*(z-d);return 2*a/3;
+	int b=5;int d=1;int z=3;int a=b*(z-d);return 2*a/3;
 }
 
 int test13(){
-	5+3;int n; n=10/2;int c; c=2+1;return n*c-4;
+	5+3;int n=10/2;int c=2+1;return n*c-4;
 }
 
 int test14(){
@@ -65,7 +65,7 @@ int test14(){
 }
 
 int test15(){
-	int pi; pi=31415;int count; count=100*314;return 2*(pi-count)/3;
+	int pi=31415;int count=100*314;return 2*(pi-count)/3;
 }
 
 int test16(){
@@ -73,27 +73,27 @@ int test16(){
 }
 
 int test17(){
-	int ab; ab=10; if(ab/5==2)return ab; return -10;
+	int ab=10; if(ab/5==2)return ab; return -10;
 }
 
 int test18(){
-	int alpha;alpha=10;int beta; beta=0;if(alpha<beta)beta=alpha;else alpha=beta; return alpha;
+	int alpha=10;int beta=0;if(alpha<beta)beta=alpha;else alpha=beta; return alpha;
 }
 
 int test19(){
-	int fact;fact=1; int i;for(i=1;fact<10;i=i+1)fact=fact*i;return fact;
+	int fact=1; int i;for(i=1;fact<10;i=i+1)fact=fact*i;return fact;
 }
 
 int test20(){
-	int pow;pow=1;while(pow<50)pow=pow*2;return pow;
+	int pow=1;while(pow<50)pow=pow*2;return pow;
 }
 
 int test21(){
-	int i;i=1;{i=i+1;}return i;
+	int i=1;{i=i+1;}return i;
 }
 
 int test22(){
-	int i;i=0;int sum;sum=0;while(i<11){sum=sum+i;i=i+1;}return sum;
+	int i=0;int sum=0;while(i<11){sum=sum+i;i=i+1;}return sum;
 }
 
 int test23(){
@@ -127,17 +127,17 @@ int test27(){
 }
 
 int test28(){
-	int a; int b; int c; a=2;b=1;c=0;return hoge(a, b, c);
+	int a=2; int b=1; int c=0; return hoge(a, b, c);
 }
 
 int hoge(int b, int c, int d){return c*(b+d);}
 
 int test29(){
-	int x; x=3;int *y; y=&x; return *y;
+	int x=3;int *y=&x; return *y;
 }
 
 int test30(){
-	int x; x=3;int y; y=5;int *z; z=&y+1; return *z;
+	int x=3;int y=5;int *z=&y+1; return *z;
 }
 
 int test31(){
@@ -145,7 +145,7 @@ int test31(){
 }
 
 int test32(){
-	int *p; alloc4(&p, 1, 2, 4, 8); int *q; q=p+3; return *q;
+	int *p; alloc4(&p, 1, 2, 4, 8); int *q=p+3; return *q;
 }
 
 int test33(){
@@ -165,11 +165,11 @@ int test36(){
 }
 
 int test37(){
-	int x; x = sizeof(x); return sizeof(&x)*sizeof(x);
+	int x= sizeof(x); return sizeof(&x)*sizeof(x);
 }
 
 int test38(){
-	int i; i=0; {i=10; int i; i=100;} return i;
+	int i=0; {i=10; int i; i=100;} return i;
 }
 
 int test39(){
@@ -196,11 +196,11 @@ int test43(){
 
 int a44;
 int foo44(int *x){
-	*x=100; int a; a=10; return a;
+	*x=100; int a=10; return a;
 }
 
 int test44(){
-	int *x; x=&a44; foo44(x); return a44;
+	int *x=&a44; foo44(x); return a44;
 }
 
 int a45[10];
@@ -214,11 +214,11 @@ int test45(){
 }
 
 int test46(){
-	char x[3]; x[0]=-1; x[1]=2; x[2]=-5; int y; y=1; return x[1]+y;
+	char x[3]; x[0]=-1; x[1]=2; x[2]=-5; int y=1; return x[1]+y;
 }
 
 int test47(){
-	char *str; str="hoge"; return str[0];
+	char *str="hoge"; return str[0];
 }
 
 int test48(){
@@ -226,7 +226,7 @@ int test48(){
 }
 
 int test49(){
-	char *a; a="abc"; char *b; b="zyx"; char *str; if(a[0]<b[0]){str=a;}else{str=b;} return str[2];
+	char *a="abc"; char *b="zyx"; char *str; if(a[0]<b[0]){str=a;}else{str=b;} return str[2];
 }
 
 int test50(){
@@ -269,12 +269,9 @@ int test55(){
 }
 
 int test56(){
-	int a;
-	a = 5;
-	int b;
-	b = -10;
-	int c;
-	c = 20;
+	int a=5;
+	int b=-10;
+	int c=20;
 	if(a < b && a < c){
 		return a;
 	}else if(b < a && b < c){
@@ -289,31 +286,54 @@ int test57(){
 }
 
 int test58(){
-	int a;
-	a=-10;
+	int a=-10;
 	a += 68;
 	return a;
 }
 
 int test59(){
-	int b;
-	b=30;
+	int b=30;
 	b-=-29;
 	return b;
 }
 
 int test60(){
-	int c;
-	c=12;
+	int c=12;
 	c*=5;
 	return c;
 }
 
 int test61(){
-	int d;
-	d=3905;
+	int d=3905;
 	d/=63;
 	return d;
+}
+
+int test62(){
+	char a='a';
+	return a;
+}
+
+int test63(){
+	char *str;
+	str = "abc";
+	return str[0]=='a'&&str[1]=='b'&&str[2]=='c';
+}
+
+int test64(){
+	int num = 10;
+	char a = 'a';
+	a += num;
+	return a;
+}
+
+int test65(){
+	char k = test64();
+	if(k == 'k'){
+		return 'y';
+	}else{
+		return 'n';
+	}
 }
 
 int main(){
@@ -379,5 +399,9 @@ int main(){
 	try(59, 59, test59());
 	try(60, 60, test60());
 	try(61, 61, test61());
+	try(62, 97, test62());
+	try(63, 1, test63());
+	try(64, 107, test64());
+	try(65, 121, test65());
 }
 

@@ -40,6 +40,12 @@ int gen(Node *node){
 		case ND_LVAR_DECL:
 			return 0;
 
+		case ND_LVAR_DECL_INIT:
+			gen(node->rhs_init);
+			printf("    pop rax\n");
+			printf("    mov [rbp%d], %s\n", node->offset, reg_name(node->type->byte, 0));
+			return 0;
+
 		case ND_GVAR_DECL:
 			printf(".data\n");
 			printf("%s:\n", node->varname);
@@ -90,12 +96,10 @@ int gen(Node *node){
 		case ND_LVAR:
 			switch(node->type->byte){
 				case 1:
-					//printf("    movsx %s, [rbp%d]\n", reg_name(1, 0), node->offset);
 					printf("    lea rax, [rbp%d]\n", node->offset);
 					printf("    movsx eax, BYTE PTR [rax]\n");
 					break;
 				case 2:
-					//printf("    movsx %s, [rbp%d]\n", reg_name(2, 0), node->offset);
 					printf("    lea rax, [rbp%d]\n", node->offset);
 					printf("    movsx eax, [rbp%d]\n", node->offset);
 					break;
@@ -403,7 +407,6 @@ void gen_block(Node *node)
 	int len = node->stmts->len;
 	for(int i=0; i<len-1; i++){
 		Node *tmp = (Node *)(node->stmts->data[i]);
-		if(tmp->ty == ND_EMPTY || tmp->ty == ND_LVAR_DECL)continue;
 		if(gen(tmp))printf("    pop rax\n");
 	}
 	gen((Node *)(node->stmts->data[len-1]));

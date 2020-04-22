@@ -98,6 +98,7 @@ enum{
     ND_NUM = 256,
     ND_LVAR,        // Node type of local variables
 	ND_LVAR_DECL,
+	ND_LVAR_DECL_INIT,
 	ND_GVAR,
 	ND_GVAR_DECL,
     ND_RETURN,
@@ -191,6 +192,7 @@ struct Node{
 			char *varname;
         	int offset;
 			char *sval; // ND_STRING
+			struct Node *rhs_init; // ND_LVAR_DECL_INIT
 		};
 
 		Vector *stmts;
@@ -226,10 +228,12 @@ Node *term(TokenSeq *seq);
 int consume(int ty, TokenSeq *seq);
 Token* expect_token(int ty, TokenSeq *seq);
 Node *new_node_ident(TokenSeq *seq);
+Node *new_node_block(TokenSeq *seq);
 Vector *parse_parameter_list(TokenSeq *seq);
 Node *parse_funcdef(TokenSeq *seq);
+Node *parse_if_stmt(TokenSeq *seq);
+Node *parse_for_stmt(TokenSeq *seq);
 Type *parse_type(TokenSeq *seq);
-Node *new_node_block(TokenSeq *seq);
 
 // node.c
 Node *new_node(int ty, Node *lhs, Node *rhs);
@@ -257,6 +261,7 @@ Type *ptr2type(Type *type);
 Type *ary2type(Type *type, int len);
 int match_type(Node *node, enum TY ty);
 int match_type2(Node *lhs, Node *rhs, enum TY lty, enum TY rty);
+int match_type_int(Node *node);
 
 // scope.c
 struct Scope{
