@@ -4,3 +4,4 @@
 gcc -c testutil.c
 gcc -o _test _test.s testutil.o -g
 ./_test
+echo FINISH

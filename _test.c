@@ -81,7 +81,7 @@ int test18(){
 }
 
 int test19(){
-	int fact=1; int i;for(i=1;fact<10;i=i+1)fact=fact*i;return fact;
+	int fact=1; for(int i=1;fact<10;i=i+1)fact=fact*i;return fact;
 }
 
 int test20(){
@@ -89,7 +89,7 @@ int test20(){
 }
 
 int test21(){
-	int i=1;{i=i+1;}return i;
+	int i=1;{i+=1;}return i;
 }
 
 int test22(){
@@ -97,7 +97,7 @@ int test22(){
 }
 
 int test23(){
-	int i;for(i=1;i<100;i=i*2){if(i>32){return i;}}
+	for(int i=1;i<100;i=i*2){if(i>32){return i;}}
 }
 
 int test24(){
@@ -149,7 +149,7 @@ int test32(){
 }
 
 int test33(){
-	int *p; alloc4(&p, 0, 1, 2, 3); int i;for(i=0; i<4; i=i+1){*p=4+i; p=p+1;}return *(p-2);
+	int *p; alloc4(&p, 0, 1, 2, 3); for(int i=0; i<4; i=i+1){*p=4+i; p=p+1;}return *(p-2);
 }
 
 int test34(){
@@ -177,11 +177,11 @@ int test39(){
 }
 
 int test40(){
-	int ary[10]; int i; for (i = 0; i < 10; i=i+1) *(i + ary) = i; return *(ary + 5); 
+	int ary[10]; for (int i = 0; i < 10; i=i+1) *(i + ary) = i; return *(ary + 5); 
 }
 
 int test41(){
-	int ary[100]; int i; for(i=0; i<100; i=i+1){if(i==0)ary[i]=i;else ary[i]=ary[i-1]+i;} return 10[ary];
+	int ary[100]; for(int i=0; i<100; i=i+1){if(i==0)ary[i]=i;else ary[i]=ary[i-1]+i;} return 10[ary];
 }
 
 int a42;
@@ -206,7 +206,7 @@ int test44(){
 int a45[10];
 
 int init45(){
-	int i; for(i=1; i<10; i=i+1){a45[i]=a45[i-1]+i;} return 0;
+	for(int i=1; i<10; i=i+1){a45[i]=a45[i-1]+i;} return 0;
 }
 
 int test45(){

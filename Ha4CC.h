@@ -233,6 +233,7 @@ Vector *parse_parameter_list(TokenSeq *seq);
 Node *parse_funcdef(TokenSeq *seq);
 Node *parse_if_stmt(TokenSeq *seq);
 Node *parse_for_stmt(TokenSeq *seq);
+Node *parse_lvar_decl(TokenSeq *seq, Type *type);
 Type *parse_type(TokenSeq *seq);
 
 // node.c

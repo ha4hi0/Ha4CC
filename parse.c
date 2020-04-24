@@ -200,7 +200,12 @@ Node *parse_for_stmt(TokenSeq *seq)
 	ret->body = NULL;
 	expect_token('(', seq);
 	if(!consume(';', seq)){
-		ret->init = expr(seq);
+		Type *type = parse_type(seq);
+		if(type != NULL){
+			ret->init = parse_lvar_decl(seq, type);
+		}else{
+			ret->init = expr(seq);
+		}
 		expect_token(';', seq);
 	}
 	if(!consume(';', seq)){
@@ -235,7 +240,6 @@ Node *parse_lvar_decl(TokenSeq *seq, Type *type)
 	}else{
 		node->ty = ND_LVAR_DECL;
 	}
-    expect_token(';', seq);
 	return node;
 }
 
@@ -279,8 +283,8 @@ Node *stmt(TokenSeq *seq)
 			node = parse_lvar_decl(seq, type);
 	    }else{
             node = expr(seq);
-        	expect_token(';', seq);
 	    }
+        expect_token(';', seq);
         return node;
     }
 }
