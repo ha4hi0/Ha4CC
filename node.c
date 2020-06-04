@@ -44,6 +44,7 @@ Node *new_node_ary2ptr(Node *node)
 	ret->ty = ND_ARY2PTR;
 	ret->ary = node;
 	ret->type = ptr2type(node->type->ary_to);
+	ret->type->len = node->type->len;
 	return ret;
 }
 

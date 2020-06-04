@@ -157,12 +157,15 @@ Node *analyze_detail(Scope *env, Node *node)
 			node->type = NULL;
 			break;
         case ND_FOR:
-			node->init = analyze_detail(env, node->init);
-			node->for_cond = analyze_detail(env, node->for_cond);
-			node->iter = analyze_detail(env, node->iter);
-			node->body = analyze_detail(env, node->body);
-			node->type = NULL;
-			break;
+			{
+				Scope *nenv = new_scope(env);
+				node->init = analyze_detail(nenv, node->init);
+				node->for_cond = analyze_detail(nenv, node->for_cond);
+				node->iter = analyze_detail(nenv, node->iter);
+				node->body = analyze_detail(nenv, node->body);
+				node->type = NULL;
+				break;
+			}
 	    case ND_FUNCDEF:
 			add_func(env, node);
 			Scope *nenv = new_scope(env);
@@ -232,14 +235,14 @@ Node *analyze_detail(Scope *env, Node *node)
 
 		case ND_SIZEOF:
 		{
-			node->lhs = analyze_detail(env, node->lhs);
-			int tmp = node->lhs->type->byte;
-			if(match_type(node->lhs, TY_ARRAY)){
-				tmp *= node->lhs->type->len;
-			}
 			node->type = type_int();
 			node->ty = ND_NUM;
-			node->val = tmp;
+			node->lhs = analyze_detail(env, node->lhs);
+			if(node->lhs->ty == ND_ARY2PTR){
+				node->val = node->lhs->type->len*node->lhs->type->ptr_to->byte;
+			}else{
+				node->val = node->lhs->type->byte;
+			}
 			break;
 		}
 
@@ -261,6 +264,12 @@ Node *analyze_detail(Scope *env, Node *node)
 			for(int i=0; i<node->array_init->len; i++){
 				node->array_init->data[i] = analyze_detail(env, (Node *)(node->array_init->data[i]));
 			}
+			break;
+		}
+
+		case ND_ARY2PTR:
+		{
+			error("ARY2PTR is detected.");
 			break;
 		}
 	}

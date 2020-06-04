@@ -346,6 +346,22 @@ int test67(){
 	return test[9];
 }
 
+int test68(){
+	int arr[10] = {1};
+	for(int i=1; i<10; i=i+1){
+		arr[i] = arr[i-1]+arr[i];
+	}
+	for(int i=1; i<10; i=i+1){
+		arr[i] = arr[i-1]+arr[i];
+	}
+	return arr[9];
+}
+
+int test69(){
+	int arr[3] = {0, 0, 1, 1, 2, 2};
+	return sizeof(arr);
+}
+
 int main(){
 	try(0, 0, test0());
 	try(1, 42, test1());
@@ -415,5 +431,7 @@ int main(){
 	try(65, 121, test65());
 	try(66, 5, test66());
 	try(67, 51, test67());
+	try(68, 10, test68());
+	try(69, 12, test69());
 }
 

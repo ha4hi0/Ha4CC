@@ -140,13 +140,11 @@ enum TY{
 typedef struct Type{
 	enum TY ty;
 	int byte;
+	int len;
 	union{
 		struct Type *ptr_to;
 
-		struct{
-			struct Type *ary_to;
-			int len;
-		};
+		struct Type *ary_to;
 	};
 }Type;
 
