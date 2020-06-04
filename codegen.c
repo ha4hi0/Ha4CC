@@ -41,11 +41,23 @@ int gen(Node *node){
 			return 0;
 
 		case ND_LVAR_DECL_INIT:
-			gen(node->rhs_init);
-			printf("    pop rax\n");
-			printf("    mov [rbp%d], %s\n", node->offset, reg_name(node->type->byte, 0));
+			if(node->rhs_init->ty == ND_ARRAY_INITIALIZER){
+				for(int i=0; i<node->type->len; i++){
+					if(i<node->rhs_init->array_init->len){
+						gen((Node *)(node->rhs_init->array_init->data[i]));
+					}else{
+						printf("    push 0\n");
+					}
+					printf("    pop rax\n");
+					printf("    mov [rbp%d], %s\n", node->offset+node->type->byte*i, reg_name(node->type->byte, 0));
+				}
+			}else{
+				gen(node->rhs_init);
+				printf("    pop rax\n");
+				printf("    mov [rbp%d], %s\n", node->offset, reg_name(node->type->byte, 0));
+			}
 			return 0;
-
+			
 		case ND_GVAR_DECL:
 			printf(".data\n");
 			printf("%s:\n", node->varname);
@@ -330,6 +342,8 @@ int gen(Node *node){
 			printf(".Lend%d:\n", Lend);
 			break;
 					   }
+		default:
+			error("Failed to gen %d.", node->ty);
 	}
     printf("    push rax\n");
 	return 1;

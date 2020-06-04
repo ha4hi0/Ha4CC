@@ -96,19 +96,27 @@ Vector* tokenize();
 // value of node type
 enum{
     ND_NUM = 256,
+
     ND_LVAR,        // Node type of local variables
 	ND_LVAR_DECL,
 	ND_LVAR_DECL_INIT,
+
 	ND_GVAR,
 	ND_GVAR_DECL,
+
+	ND_ARRAY_INITIALIZER,
+
     ND_RETURN,
+
     ND_EQ,
     ND_NE,
     ND_LE,
 	ND_GE,
     ND_IF,
+
     ND_FOR,
     ND_WHILE,
+
 	ND_BLOCK,
 	ND_FUNCCALL,
 	ND_FUNCDEF,
@@ -197,6 +205,8 @@ struct Node{
 
 		Vector *stmts;
 
+		Vector *array_init; // ND_ARRAY_INITIALIZER
+
 		Node *ary; // ND_ARY2PTR
 
         // ND_NUM
@@ -234,6 +244,7 @@ Node *parse_funcdef(TokenSeq *seq);
 Node *parse_if_stmt(TokenSeq *seq);
 Node *parse_for_stmt(TokenSeq *seq);
 Node *parse_lvar_decl(TokenSeq *seq, Type *type);
+Node *parse_array_initializer(TokenSeq *seq);
 Type *parse_type(TokenSeq *seq);
 
 // node.c

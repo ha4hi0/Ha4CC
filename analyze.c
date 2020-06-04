@@ -194,6 +194,9 @@ Node *analyze_detail(Scope *env, Node *node)
 			add_var(env, node);
 			node->offset = get_var(env, node->varname)->offset;
 			node->rhs_init = analyze_detail(env, node->rhs_init);
+			if((node->rhs_init->ty == ND_ARRAY_INITIALIZER) && (node->type->ty != TY_ARRAY)){
+				error("excess elements in scalar initializer.");
+			}
 			break;
         case ND_LVAR:
 		case ND_GVAR:{
@@ -239,6 +242,7 @@ Node *analyze_detail(Scope *env, Node *node)
 			node->val = tmp;
 			break;
 		}
+
 		case ND_STRING:
 		{
 			Node *ret;
@@ -249,6 +253,15 @@ Node *analyze_detail(Scope *env, Node *node)
 			add_gvar(env, node);
 			ret = ary2ptr(node);
 			return ret;
+		}
+
+		case ND_ARRAY_INITIALIZER:
+		{
+			node->type = ary2type(type_int(), sizeof(node->array_init->len));
+			for(int i=0; i<node->array_init->len; i++){
+				node->array_init->data[i] = analyze_detail(env, (Node *)(node->array_init->data[i]));
+			}
+			break;
 		}
 	}
 	return node;

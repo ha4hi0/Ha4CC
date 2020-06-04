@@ -336,6 +336,16 @@ int test65(){
 	}
 }
 
+int test66(){
+	int arr[10] = {10, 9, 8, 7, 6, 5, 4, 3, 2, 1};
+	return arr[5];
+}
+
+int test67(){
+	int test[10] = {test1(), test2(), test3(), test4(), test5(), test6(), test7(), test8(), test9(), test10()};
+	return test[9];
+}
+
 int main(){
 	try(0, 0, test0());
 	try(1, 42, test1());
@@ -403,5 +413,7 @@ int main(){
 	try(63, 1, test63());
 	try(64, 107, test64());
 	try(65, 121, test65());
+	try(66, 5, test66());
+	try(67, 51, test67());
 }
 
