@@ -362,6 +362,21 @@ int test69(){
 	return sizeof(arr);
 }
 
+int test70(){
+	int arr[] = {0, 1, 2, 3, 4};
+	return sizeof(arr)/sizeof(arr[0]);
+}
+
+int test71(){
+	char str[] = "*HELLO,PLANET.";
+	return str[6];
+}
+
+int test72(){
+	int ans[100] = {test1(), test2(), test3(), test4(), test5()};
+	return ans[4]+ans[99];
+}
+
 int main(){
 	try(0, 0, test0());
 	try(1, 42, test1());
@@ -433,5 +448,9 @@ int main(){
 	try(67, 51, test67());
 	try(68, 10, test68());
 	try(69, 12, test69());
+	try(70, 5, test70());
+	try(71, ',', test71());
+	try(72, test5(), test72());
+	return 0;
 }
 

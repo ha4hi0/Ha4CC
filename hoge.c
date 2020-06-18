@@ -1,4 +1,5 @@
+int a[] = {1, 2, 3};
+
 int main(){
-	int arr[10] = {0};
-	return sizeof(arr);
+	return a[0];
 }

@@ -225,10 +225,20 @@ Node *parse_lvar_decl(TokenSeq *seq, Type *type)
 	Node *node = malloc(sizeof(Node));
 	char *varname = malloc(sizeof(char)*256);
 	strcpy(varname, consume_token_name(seq));
+	int len_is_determined = 0;
+	int len = 0;
 	if(consume('[', seq)){
-		int len=expect_token(TK_NUM, seq)->val;
+		Token *tk = next(seq);
 		node->type = ary2type(type, len);
-		expect_token(']', seq);
+		if(tk->ty == TK_NUM){
+			len=tk->val;
+			len_is_determined = 1;
+			expect_token(']', seq);
+		}else{
+			if(tk->ty != ']'){
+				error_at(tk->input, "number is expected.");
+			}
+		}
 	}else{
 		node->type = type;
 	}
@@ -239,14 +249,16 @@ Node *parse_lvar_decl(TokenSeq *seq, Type *type)
 		if(node->type->ty != TY_ARRAY){
 			node->rhs_init = expr(seq);
 		}else{
-			if(consume('{', seq)){
-				node->rhs_init = parse_array_initializer(seq);
-			}else{
-				error("We apologize for the incovenience.");
+			node->rhs_init = parse_array_initializer(seq);
+			if(!len_is_determined){
+				len = node->rhs_init->array_init->len;
 			}
 		}
 	}else{
 		node->ty = ND_LVAR_DECL;
+	}
+	if(node->type->ty == TY_ARRAY){
+		node->type->len = len;
 	}
 	return node;
 }
@@ -256,17 +268,21 @@ Node *parse_array_initializer(TokenSeq *seq)
 	Node *node = malloc(sizeof(Node));
 	node->ty = ND_ARRAY_INITIALIZER;
 	node->array_init = new_vector();
-	{
-	Node *tmp = malloc(sizeof(Node));
-	tmp = expr(seq);
-	vec_push(node->array_init, tmp);
+	Token *t = get_token(seq);
+	if(consume('{', seq)){
+		do{
+			Node *tmp = malloc(sizeof(Node));
+			tmp = expr(seq);
+			vec_push(node->array_init, tmp);
+		}while(consume(',', seq));
+		expect_token('}', seq);
+	}else if(consume(TK_STRING, seq)){
+		for(int i=0; i<t->slen; i++){
+			Node *tmp = new_node_num(t->sval[i]);
+			vec_push(node->array_init, tmp);
+		}
+		return node;
 	}
-	while(consume(',', seq)){
-		Node *tmp = malloc(sizeof(Node));
-		tmp = expr(seq);
-		vec_push(node->array_init, tmp);
-	}
-	expect_token('}', seq);
 	return node;
 }
 

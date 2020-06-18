@@ -128,6 +128,7 @@ Vector* tokenize(){
 				ret[i] = (char)(string->data[i]);
 			}
 			ret[string->len] = '\0';
+			t->slen = string->len+1;
 			t->sval = ret;
 			vec_push(tokens, t);
 			continue;

@@ -77,7 +77,10 @@ typedef struct{
 	union{
     	int val;        // value of TK_NUM token
     	char *name;     // name of TK_IDENT token
-		char *sval;		// TK_STRING
+		struct{
+			char *sval;		// TK_STRING
+			int slen;
+		};
 	};
     char *input;    // Token strings for error message
 }Token;
@@ -198,6 +201,7 @@ struct Node{
 			char *varname;
         	int offset;
 			char *sval; // ND_STRING
+			int str_len;
 			struct Node *rhs_init; // ND_LVAR_DECL_INIT
 		};
 
