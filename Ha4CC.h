@@ -50,25 +50,37 @@ enum{
     TK_NUM = 256, // integer token
     TK_IDENT,     // identifier
     TK_RETURN,
+
     TK_EQ,        // EQual operator
     TK_NE,        // Not Equal operator
     TK_LE,        // Less than or Equal operator
     TK_GE,        // Grater than or Equal operator
+
     TK_IF,
     TK_ELS,
     TK_FOR,
     TK_WHILE,
+
     TK_EOF,       // EOF token
+
 	TK_INT,
 	TK_CHAR,
+
 	TK_SIZEOF,
+
 	TK_STRING,
+
+	// && ||
 	TK_LOG_AND,
 	TK_LOG_OR,
+
+	// op=
 	TK_ADD_EQ,
 	TK_SUB_EQ,
 	TK_MUL_EQ,
 	TK_DIV_EQ,
+
+	TK_INC, // ++
 };
 
 // Token type
@@ -115,8 +127,8 @@ enum{
     ND_NE,
     ND_LE,
 	ND_GE,
-    ND_IF,
 
+    ND_IF,
     ND_FOR,
     ND_WHILE,
 
@@ -125,12 +137,18 @@ enum{
 	ND_FUNCDEF,
 	ND_ADDR,
 	ND_DEREF,
+
 	ND_EMPTY,
+
 	ND_SIZEOF,
 	ND_ARY2PTR,
+
 	ND_STRING,
 	ND_LOG_AND,
 	ND_LOG_OR,
+
+	ND_PREINC,
+	ND_POSTINC,
 };
 
 enum TY{

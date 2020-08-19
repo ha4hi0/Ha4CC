@@ -97,7 +97,7 @@ int test22(){
 }
 
 int test23(){
-	for(int i=1;i<100;i=i*2){if(i>32){return i;}}
+	for(int i=1;i<100;i*=2){if(i>32){return i;}}
 }
 
 int test24(){
@@ -181,7 +181,7 @@ int test40(){
 }
 
 int test41(){
-	int ary[100]; for(int i=0; i<100; i=i+1){if(i==0)ary[i]=i;else ary[i]=ary[i-1]+i;} return 10[ary];
+	int ary[100]; for(int i=0; i<100; i++){if(i==0)ary[i]=i;else ary[i]=ary[i-1]+i;} return 10[ary];
 }
 
 int a42;
@@ -206,7 +206,7 @@ int test44(){
 int a45[10];
 
 int init45(){
-	for(int i=1; i<10; i=i+1){a45[i]=a45[i-1]+i;} return 0;
+	for(int i=1; i<10; i++){a45[i]=a45[i-1]+i;} return 0;
 }
 
 int test45(){
@@ -348,10 +348,10 @@ int test67(){
 
 int test68(){
 	int arr[10] = {1};
-	for(int i=1; i<10; i=i+1){
+	for(int i=1; i<10; i++){
 		arr[i] = arr[i-1]+arr[i];
 	}
-	for(int i=1; i<10; i=i+1){
+	for(int i=1; i<10; i++){
 		arr[i] = arr[i-1]+arr[i];
 	}
 	return arr[9];
@@ -375,6 +375,22 @@ int test71(){
 int test72(){
 	int ans[100] = {test1(), test2(), test3(), test4(), test5()};
 	return ans[4]+ans[99];
+}
+
+int test73(){
+	int a=0;
+	if(a++>0){
+		return 1;
+	}
+	return 0;
+}
+
+int test74(){
+	int a=0;
+	if(++a>0){
+		return 1;
+	}
+	return 0;
 }
 
 int main(){
@@ -451,6 +467,8 @@ int main(){
 	try(70, 5, test70());
 	try(71, ',', test71());
 	try(72, test5(), test72());
+	try(73, 0, test73());
+	try(74, 1, test74());
 	return 0;
 }
 

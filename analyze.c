@@ -190,8 +190,10 @@ Node *analyze_detail(Scope *env, Node *node)
 			node->type = NULL;
 			break;
 		case ND_LVAR_DECL:
-		case ND_GVAR_DECL:
 			add_var(env, node);
+			break;
+		case ND_GVAR_DECL:
+			add_gvar(env, node);
 			break;
 		case ND_LVAR_DECL_INIT:
 			add_var(env, node);
@@ -205,7 +207,11 @@ Node *analyze_detail(Scope *env, Node *node)
 		case ND_GVAR:{
 			Node *tmp = get_var(env, node->varname);
 			if(tmp == NULL) error("%s is not declared", node->varname);
-			node = ary2ptr(tmp);
+			tmp = ary2ptr(tmp);
+			node->ty = tmp->ty;
+			node->type = tmp->type;
+			node->varname = tmp->varname;
+			node->offset = tmp->offset;
 			break;
 					 }
 	    case ND_FUNCCALL:
@@ -272,6 +278,13 @@ Node *analyze_detail(Scope *env, Node *node)
 			error("ARY2PTR is detected.");
 			break;
 		}
+		case ND_POSTINC:
+		case ND_PREINC:
+			if((node->lhs->ty != ND_DEREF) && (node->lhs->ty != ND_GVAR) && (node->lhs->ty != ND_LVAR)){
+				error("lvalue required as increment operand.");
+			}
+			node->type = analyze_detail(env, node->lhs)->type;
+			break;
 	}
 	return node;
 }

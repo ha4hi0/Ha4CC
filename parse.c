@@ -466,6 +466,8 @@ Node *unary(TokenSeq *seq)
 		return new_node(ND_ADDR, unary(seq), (Node *)NULL);
 	}else if(consume('*', seq)){
 		return new_node(ND_DEREF, unary(seq), (Node *)NULL);
+	}else if(consume(TK_INC, seq)){
+		return new_node(ND_PREINC, unary(seq), (Node *)NULL);
 	}
     return term(seq);
 }
@@ -480,25 +482,28 @@ Node *term(TokenSeq *seq)
             error_at(get_token(seq)->input, 
                     ") expected");
         }
-        return node;
-    }
-
-    if(get_token(seq)->ty == TK_NUM){
-		int a = next(seq)->val;
-        node = new_node_num(a);
-    }else if(get_token(seq)->ty == TK_IDENT){
-		node = new_node_ident(seq);
-	}else if(get_token(seq)->ty == TK_STRING){
-		node = malloc(sizeof(Node));
-		node->ty = ND_STRING;
-		node->sval = next(seq)->sval;
     }else{
-        error_at(get_token(seq)->input, 
-                "unexpected token: expected a number");
-    }
-	if(consume('[', seq)){
-		node = new_node(ND_DEREF, new_node('+', expr(seq), node), NULL);
-		expect_token(']', seq);
+    	if(get_token(seq)->ty == TK_NUM){
+			int a = next(seq)->val;
+    	    node = new_node_num(a);
+    	}else if(get_token(seq)->ty == TK_IDENT){
+			node = new_node_ident(seq);
+		}else if(get_token(seq)->ty == TK_STRING){
+			node = malloc(sizeof(Node));
+			node->ty = ND_STRING;
+			node->sval = next(seq)->sval;
+    	}
+		else{
+    	    error_at(get_token(seq)->input, 
+    	            "unexpected token: expected a number");
+    	}
+		if(consume('[', seq)){
+			node = new_node(ND_DEREF, new_node('+', expr(seq), node), (Node *)NULL);
+			expect_token(']', seq);
+		}
+	}
+	if(consume(TK_INC, seq)){
+		node = new_node(ND_POSTINC, node, (Node *)NULL);
 	}
     return node;
 }

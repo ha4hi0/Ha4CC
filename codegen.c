@@ -171,6 +171,72 @@ int gen(Node *node){
 			}
         	return 1;
 
+		case ND_POSTINC:
+			if(node->lhs->ty == ND_DEREF){
+				gen(node->lhs->lhs);
+				printf("    pop rax\n");
+				printf("    push [rax]\n");
+				if(node->type->ty == TY_PTR){
+					printf("    push %d\n", node->type->ptr_to->byte);
+				}else{
+					printf("    push 1\n");
+				}
+				printf("    pop rdi\n");
+				printf("    add [rax], %s\n", reg_name(node->lhs->type->byte, 1));
+			}else if(node->lhs->ty == ND_GVAR){
+				printf("    push %s[rip]\n", node->lhs->varname);
+				if(node->type->ty == TY_PTR){
+					printf("    push %d\n", node->type->ptr_to->byte);
+				}else{
+					printf("    push 1\n");
+				}
+				printf("    pop rdi\n");
+				printf("    add %s[rip], %s\n", node->lhs->varname, reg_name(node->lhs->type->byte, 1));
+			}else if(node->lhs->ty == ND_LVAR){
+				printf("    push [rbp%d]\n", node->lhs->offset);
+				if(node->type->ty == TY_PTR){
+					printf("    push %d\n", node->type->ptr_to->byte);
+				}else{
+					printf("    push 1\n");
+				}
+				printf("    pop rdi\n");
+				printf("    add [rbp%d], %s\n", node->lhs->offset, reg_name(node->lhs->type->byte, 1));
+			}
+			return 1;
+
+		case ND_PREINC:
+			if(node->lhs->ty == ND_DEREF){
+				gen(node->lhs->lhs);
+				printf("    pop rax\n");
+				if(node->type->ty == TY_PTR){
+					printf("    push %d\n", node->type->ptr_to->byte);
+				}else{
+					printf("    push 1\n");
+				}
+				printf("    pop rdi\n");
+				printf("    add [rax], %s\n", reg_name(node->lhs->type->byte, 1));
+				printf("    push [rax]\n");
+			}else if(node->lhs->ty == ND_GVAR){
+				if(node->type->ty == TY_PTR){
+					printf("    push %d\n", node->type->ptr_to->byte);
+				}else{
+					printf("    push 1\n");
+				}
+				printf("    pop rdi\n");
+				printf("    add %s[rip], %s\n", node->lhs->varname, reg_name(node->lhs->type->byte, 1));
+				printf("    push %s[rip]\n", node->lhs->varname);
+			}else if(node->lhs->ty == ND_LVAR){
+				if(node->type->ty == TY_PTR){
+					printf("    push %d\n", node->type->ptr_to->byte);
+				}else{
+					printf("    push 1\n");
+				}
+				printf("    pop rdi\n");
+				printf("    add [rbp%d], %s\n", node->lhs->offset, reg_name(node->lhs->type->byte, 1));
+				printf("    push [rbp%d]\n", node->lhs->offset);
+			}
+			return 1;
+
 		case ND_ADDR:
 			if(node->lhs->ty == ND_DEREF){
 				gen(node->lhs->lhs);
