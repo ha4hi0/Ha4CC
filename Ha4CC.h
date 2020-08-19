@@ -50,25 +50,37 @@ enum{
     TK_NUM = 256, // integer token
     TK_IDENT,     // identifier
     TK_RETURN,
+
     TK_EQ,        // EQual operator
     TK_NE,        // Not Equal operator
     TK_LE,        // Less than or Equal operator
     TK_GE,        // Grater than or Equal operator
+
     TK_IF,
     TK_ELS,
     TK_FOR,
     TK_WHILE,
+
     TK_EOF,       // EOF token
+
 	TK_INT,
 	TK_CHAR,
+
 	TK_SIZEOF,
+
 	TK_STRING,
+
+	// && ||
 	TK_LOG_AND,
 	TK_LOG_OR,
+
+	// op=
 	TK_ADD_EQ,
 	TK_SUB_EQ,
 	TK_MUL_EQ,
 	TK_DIV_EQ,
+
+	TK_INC, // ++
 };
 
 // Token type
@@ -77,7 +89,10 @@ typedef struct{
 	union{
     	int val;        // value of TK_NUM token
     	char *name;     // name of TK_IDENT token
-		char *sval;		// TK_STRING
+		struct{
+			char *sval;		// TK_STRING
+			int slen;
+		};
 	};
     char *input;    // Token strings for error message
 }Token;
@@ -96,29 +111,44 @@ Vector* tokenize();
 // value of node type
 enum{
     ND_NUM = 256,
+
     ND_LVAR,        // Node type of local variables
 	ND_LVAR_DECL,
+	ND_LVAR_DECL_INIT,
+
 	ND_GVAR,
 	ND_GVAR_DECL,
+
+	ND_ARRAY_INITIALIZER,
+
     ND_RETURN,
+
     ND_EQ,
     ND_NE,
     ND_LE,
 	ND_GE,
+
     ND_IF,
     ND_FOR,
     ND_WHILE,
+
 	ND_BLOCK,
 	ND_FUNCCALL,
 	ND_FUNCDEF,
 	ND_ADDR,
 	ND_DEREF,
+
 	ND_EMPTY,
+
 	ND_SIZEOF,
 	ND_ARY2PTR,
+
 	ND_STRING,
 	ND_LOG_AND,
 	ND_LOG_OR,
+
+	ND_PREINC,
+	ND_POSTINC,
 };
 
 enum TY{
@@ -131,13 +161,11 @@ enum TY{
 typedef struct Type{
 	enum TY ty;
 	int byte;
+	int len;
 	union{
 		struct Type *ptr_to;
 
-		struct{
-			struct Type *ary_to;
-			int len;
-		};
+		struct Type *ary_to;
 	};
 }Type;
 
@@ -191,9 +219,13 @@ struct Node{
 			char *varname;
         	int offset;
 			char *sval; // ND_STRING
+			int str_len;
+			struct Node *rhs_init; // ND_LVAR_DECL_INIT
 		};
 
 		Vector *stmts;
+
+		Vector *array_init; // ND_ARRAY_INITIALIZER
 
 		Node *ary; // ND_ARY2PTR
 
@@ -226,10 +258,14 @@ Node *term(TokenSeq *seq);
 int consume(int ty, TokenSeq *seq);
 Token* expect_token(int ty, TokenSeq *seq);
 Node *new_node_ident(TokenSeq *seq);
+Node *new_node_block(TokenSeq *seq);
 Vector *parse_parameter_list(TokenSeq *seq);
 Node *parse_funcdef(TokenSeq *seq);
+Node *parse_if_stmt(TokenSeq *seq);
+Node *parse_for_stmt(TokenSeq *seq);
+Node *parse_lvar_decl(TokenSeq *seq, Type *type);
+Node *parse_array_initializer(TokenSeq *seq);
 Type *parse_type(TokenSeq *seq);
-Node *new_node_block(TokenSeq *seq);
 
 // node.c
 Node *new_node(int ty, Node *lhs, Node *rhs);

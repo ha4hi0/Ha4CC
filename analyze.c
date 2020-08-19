@@ -157,12 +157,15 @@ Node *analyze_detail(Scope *env, Node *node)
 			node->type = NULL;
 			break;
         case ND_FOR:
-			node->init = analyze_detail(env, node->init);
-			node->for_cond = analyze_detail(env, node->for_cond);
-			node->iter = analyze_detail(env, node->iter);
-			node->body = analyze_detail(env, node->body);
-			node->type = NULL;
-			break;
+			{
+				Scope *nenv = new_scope(env);
+				node->init = analyze_detail(nenv, node->init);
+				node->for_cond = analyze_detail(nenv, node->for_cond);
+				node->iter = analyze_detail(nenv, node->iter);
+				node->body = analyze_detail(nenv, node->body);
+				node->type = NULL;
+				break;
+			}
 	    case ND_FUNCDEF:
 			add_func(env, node);
 			Scope *nenv = new_scope(env);
@@ -187,14 +190,30 @@ Node *analyze_detail(Scope *env, Node *node)
 			node->type = NULL;
 			break;
 		case ND_LVAR_DECL:
-		case ND_GVAR_DECL:
 			add_var(env, node);
 			break;
-        case ND_LVAR:
-		case ND_GVAR:
-			node = ary2ptr(get_var(env, node->varname));
-			if(node == NULL) error("%s is not declared", node->varname);
+		case ND_GVAR_DECL:
+			add_gvar(env, node);
 			break;
+		case ND_LVAR_DECL_INIT:
+			add_var(env, node);
+			node->offset = get_var(env, node->varname)->offset;
+			node->rhs_init = analyze_detail(env, node->rhs_init);
+			if((node->rhs_init->ty == ND_ARRAY_INITIALIZER) && (node->type->ty != TY_ARRAY)){
+				error("excess elements in scalar initializer.");
+			}
+			break;
+        case ND_LVAR:
+		case ND_GVAR:{
+			Node *tmp = get_var(env, node->varname);
+			if(tmp == NULL) error("%s is not declared", node->varname);
+			tmp = ary2ptr(tmp);
+			node->ty = tmp->ty;
+			node->type = tmp->type;
+			node->varname = tmp->varname;
+			node->offset = tmp->offset;
+			break;
+					 }
 	    case ND_FUNCCALL:
 			{
 				Node *def = get_func(env, node->funcname);
@@ -222,16 +241,17 @@ Node *analyze_detail(Scope *env, Node *node)
 
 		case ND_SIZEOF:
 		{
-			node->lhs = analyze_detail(env, node->lhs);
-			int tmp = node->lhs->type->byte;
-			if(match_type(node->lhs, TY_ARRAY)){
-				tmp *= node->lhs->type->len;
-			}
 			node->type = type_int();
 			node->ty = ND_NUM;
-			node->val = tmp;
+			node->lhs = analyze_detail(env, node->lhs);
+			if(node->lhs->ty == ND_ARY2PTR){
+				node->val = node->lhs->type->len*node->lhs->type->ptr_to->byte;
+			}else{
+				node->val = node->lhs->type->byte;
+			}
 			break;
 		}
+
 		case ND_STRING:
 		{
 			Node *ret;
@@ -243,6 +263,28 @@ Node *analyze_detail(Scope *env, Node *node)
 			ret = ary2ptr(node);
 			return ret;
 		}
+
+		case ND_ARRAY_INITIALIZER:
+		{
+			node->type = ary2type(type_int(), sizeof(node->array_init->len));
+			for(int i=0; i<node->array_init->len; i++){
+				node->array_init->data[i] = analyze_detail(env, (Node *)(node->array_init->data[i]));
+			}
+			break;
+		}
+
+		case ND_ARY2PTR:
+		{
+			error("ARY2PTR is detected.");
+			break;
+		}
+		case ND_POSTINC:
+		case ND_PREINC:
+			if((node->lhs->ty != ND_DEREF) && (node->lhs->ty != ND_GVAR) && (node->lhs->ty != ND_LVAR)){
+				error("lvalue required as increment operand.");
+			}
+			node->type = analyze_detail(env, node->lhs)->type;
+			break;
 	}
 	return node;
 }

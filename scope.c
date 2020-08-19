@@ -63,7 +63,7 @@ Node *add_var(Scope *env, Node *node)
 	Node *var = malloc(sizeof(Node));
 	if(node->ty == ND_GVAR_DECL){
 		var->ty = ND_GVAR;
-	}else if(node->ty == ND_LVAR_DECL){
+	}else if(node->ty == ND_LVAR_DECL || node->ty == ND_LVAR_DECL_INIT){
 		var->ty = ND_LVAR;
 		if(match_type(node, TY_ARRAY)){
 			env->stack_idx -= node->type->byte*node->type->len;

@@ -40,6 +40,24 @@ int gen(Node *node){
 		case ND_LVAR_DECL:
 			return 0;
 
+		case ND_LVAR_DECL_INIT:
+			if(node->rhs_init->ty == ND_ARRAY_INITIALIZER){
+				for(int i=0; i<node->type->len; i++){
+					if(i<node->rhs_init->array_init->len){
+						gen((Node *)(node->rhs_init->array_init->data[i]));
+					}else{
+						printf("    push 0\n");
+					}
+					printf("    pop rax\n");
+					printf("    mov [rbp%d], %s\n", node->offset+node->type->byte*i, reg_name(node->type->byte, 0));
+				}
+			}else{
+				gen(node->rhs_init);
+				printf("    pop rax\n");
+				printf("    mov [rbp%d], %s\n", node->offset, reg_name(node->type->byte, 0));
+			}
+			return 0;
+			
 		case ND_GVAR_DECL:
 			printf(".data\n");
 			printf("%s:\n", node->varname);
@@ -90,12 +108,10 @@ int gen(Node *node){
 		case ND_LVAR:
 			switch(node->type->byte){
 				case 1:
-					//printf("    movsx %s, [rbp%d]\n", reg_name(1, 0), node->offset);
 					printf("    lea rax, [rbp%d]\n", node->offset);
 					printf("    movsx eax, BYTE PTR [rax]\n");
 					break;
 				case 2:
-					//printf("    movsx %s, [rbp%d]\n", reg_name(2, 0), node->offset);
 					printf("    lea rax, [rbp%d]\n", node->offset);
 					printf("    movsx eax, [rbp%d]\n", node->offset);
 					break;
@@ -154,6 +170,72 @@ int gen(Node *node){
 				printf("    push rdi\n");
 			}
         	return 1;
+
+		case ND_POSTINC:
+			if(node->lhs->ty == ND_DEREF){
+				gen(node->lhs->lhs);
+				printf("    pop rax\n");
+				printf("    push [rax]\n");
+				if(node->type->ty == TY_PTR){
+					printf("    push %d\n", node->type->ptr_to->byte);
+				}else{
+					printf("    push 1\n");
+				}
+				printf("    pop rdi\n");
+				printf("    add [rax], %s\n", reg_name(node->lhs->type->byte, 1));
+			}else if(node->lhs->ty == ND_GVAR){
+				printf("    push %s[rip]\n", node->lhs->varname);
+				if(node->type->ty == TY_PTR){
+					printf("    push %d\n", node->type->ptr_to->byte);
+				}else{
+					printf("    push 1\n");
+				}
+				printf("    pop rdi\n");
+				printf("    add %s[rip], %s\n", node->lhs->varname, reg_name(node->lhs->type->byte, 1));
+			}else if(node->lhs->ty == ND_LVAR){
+				printf("    push [rbp%d]\n", node->lhs->offset);
+				if(node->type->ty == TY_PTR){
+					printf("    push %d\n", node->type->ptr_to->byte);
+				}else{
+					printf("    push 1\n");
+				}
+				printf("    pop rdi\n");
+				printf("    add [rbp%d], %s\n", node->lhs->offset, reg_name(node->lhs->type->byte, 1));
+			}
+			return 1;
+
+		case ND_PREINC:
+			if(node->lhs->ty == ND_DEREF){
+				gen(node->lhs->lhs);
+				printf("    pop rax\n");
+				if(node->type->ty == TY_PTR){
+					printf("    push %d\n", node->type->ptr_to->byte);
+				}else{
+					printf("    push 1\n");
+				}
+				printf("    pop rdi\n");
+				printf("    add [rax], %s\n", reg_name(node->lhs->type->byte, 1));
+				printf("    push [rax]\n");
+			}else if(node->lhs->ty == ND_GVAR){
+				if(node->type->ty == TY_PTR){
+					printf("    push %d\n", node->type->ptr_to->byte);
+				}else{
+					printf("    push 1\n");
+				}
+				printf("    pop rdi\n");
+				printf("    add %s[rip], %s\n", node->lhs->varname, reg_name(node->lhs->type->byte, 1));
+				printf("    push %s[rip]\n", node->lhs->varname);
+			}else if(node->lhs->ty == ND_LVAR){
+				if(node->type->ty == TY_PTR){
+					printf("    push %d\n", node->type->ptr_to->byte);
+				}else{
+					printf("    push 1\n");
+				}
+				printf("    pop rdi\n");
+				printf("    add [rbp%d], %s\n", node->lhs->offset, reg_name(node->lhs->type->byte, 1));
+				printf("    push [rbp%d]\n", node->lhs->offset);
+			}
+			return 1;
 
 		case ND_ADDR:
 			if(node->lhs->ty == ND_DEREF){
@@ -326,6 +408,8 @@ int gen(Node *node){
 			printf(".Lend%d:\n", Lend);
 			break;
 					   }
+		default:
+			error("Failed to gen %d.", node->ty);
 	}
     printf("    push rax\n");
 	return 1;
@@ -403,7 +487,6 @@ void gen_block(Node *node)
 	int len = node->stmts->len;
 	for(int i=0; i<len-1; i++){
 		Node *tmp = (Node *)(node->stmts->data[i]);
-		if(tmp->ty == ND_EMPTY || tmp->ty == ND_LVAR_DECL)continue;
 		if(gen(tmp))printf("    pop rax\n");
 	}
 	gen((Node *)(node->stmts->data[len-1]));

@@ -171,6 +171,121 @@ Node *top_level(TokenSeq *seq)
 	return node;
 }
 
+Node *parse_if_stmt(TokenSeq *seq)
+{
+	Node *ret = malloc(sizeof(Node));
+	next(seq);
+	ret->ty = ND_IF;
+	ret->cond = NULL;
+	ret->then = NULL;
+	ret->els = NULL;
+	expect_token('(', seq);
+	ret->cond = expr(seq);
+	expect_token(')', seq);
+	ret->then = stmt(seq);
+	if(consume(TK_ELS, seq)){
+		ret->els = stmt(seq);
+	}
+	return ret;
+}
+
+Node *parse_for_stmt(TokenSeq *seq)
+{
+	Node *ret = malloc(sizeof(Node));
+	next(seq);
+	ret->ty = ND_FOR;
+	ret->init = NULL;
+	ret->for_cond = NULL;
+	ret->iter = NULL;
+	ret->body = NULL;
+	expect_token('(', seq);
+	if(!consume(';', seq)){
+		Type *type = parse_type(seq);
+		if(type != NULL){
+			ret->init = parse_lvar_decl(seq, type);
+		}else{
+			ret->init = expr(seq);
+		}
+		expect_token(';', seq);
+	}
+	if(!consume(';', seq)){
+		ret->for_cond = expr(seq);
+		expect_token(';', seq);
+	}
+	if(!consume(')', seq)){
+		ret->iter = expr(seq);
+		expect_token(')', seq);
+	}
+	ret->body = stmt(seq);
+	return ret;
+}
+
+Node *parse_lvar_decl(TokenSeq *seq, Type *type)
+{
+	Node *node = malloc(sizeof(Node));
+	char *varname = malloc(sizeof(char)*256);
+	strcpy(varname, consume_token_name(seq));
+	int len_is_determined = 0;
+	int len = 0;
+	if(consume('[', seq)){
+		Token *tk = next(seq);
+		node->type = ary2type(type, len);
+		if(tk->ty == TK_NUM){
+			len=tk->val;
+			len_is_determined = 1;
+			expect_token(']', seq);
+		}else{
+			if(tk->ty != ']'){
+				error_at(tk->input, "number is expected.");
+			}
+		}
+	}else{
+		node->type = type;
+	}
+	node->varname = varname;
+
+	if(consume('=', seq)){
+		node->ty = ND_LVAR_DECL_INIT;
+		if(node->type->ty != TY_ARRAY){
+			node->rhs_init = expr(seq);
+		}else{
+			node->rhs_init = parse_array_initializer(seq);
+			if(!len_is_determined){
+				len = node->rhs_init->array_init->len;
+			}
+		}
+	}else{
+		node->ty = ND_LVAR_DECL;
+	}
+	if(node->type->ty == TY_ARRAY){
+		node->type->len = len;
+	}
+	return node;
+}
+
+Node *parse_array_initializer(TokenSeq *seq)
+{
+	Node *node = malloc(sizeof(Node));
+	node->ty = ND_ARRAY_INITIALIZER;
+	node->array_init = new_vector();
+	Token *t = get_token(seq);
+	if(consume('{', seq)){
+		do{
+			Node *tmp = malloc(sizeof(Node));
+			tmp = expr(seq);
+			vec_push(node->array_init, tmp);
+		}while(consume(',', seq));
+		expect_token('}', seq);
+	}else if(consume(TK_STRING, seq)){
+		for(int i=0; i<t->slen; i++){
+			Node *tmp = new_node_num(t->sval[i]);
+			vec_push(node->array_init, tmp);
+		}
+		return node;
+	}
+	return node;
+}
+
 Node *stmt(TokenSeq *seq)
 {
     Node *node;
@@ -178,43 +293,9 @@ Node *stmt(TokenSeq *seq)
 	Type *type;
     switch(t->ty){
     case TK_IF:
-    	node = malloc(sizeof(Node));
-		next(seq);
-        node->ty = ND_IF;
-		node->cond = NULL;
-		node->then = NULL;
-		node->els = NULL;
-        expect_token('(', seq);
-        node->cond = expr(seq);
-        expect_token(')', seq);
-        node->then = stmt(seq);
-        if(consume(TK_ELS, seq)){
-            node->els = stmt(seq);
-        }
-        return node;
+		return parse_if_stmt(seq);
     case TK_FOR:
-    	node = malloc(sizeof(Node));
-		next(seq);
-        node->ty = ND_FOR;
-		node->init = NULL;
-		node->for_cond = NULL;
-		node->iter = NULL;
-		node->body = NULL;
-        expect_token('(', seq);
-        if(!consume(';', seq)){
-            node->init = expr(seq);
-            expect_token(';', seq);
-        }
-        if(!consume(';', seq)){
-            node->for_cond = expr(seq);
-            expect_token(';', seq);
-        }
-        if(!consume(';', seq)){
-            node->iter = expr(seq);
-        }
-        expect_token(')', seq);
-        node->body = stmt(seq);
-        return node;
+        return parse_for_stmt(seq);
     case TK_WHILE:
     	node = malloc(sizeof(Node));
 		next(seq);
@@ -241,24 +322,13 @@ Node *stmt(TokenSeq *seq)
 		return node;
     default:
 	    type = parse_type(seq);
-	    node = malloc(sizeof(Node));
 	    if(type != NULL){
-			char *varname = malloc(sizeof(char)*256);
-			strcpy(varname, consume_token_name(seq));
-	    	node->ty = ND_LVAR_DECL;
-			if(consume('[', seq)){
-				int len=expect_token(TK_NUM, seq)->val;
-				node->type = ary2type(type, len);
-				expect_token(']', seq);
-			}else{
-	    		node->type = type;
-			}
-	    	node->varname = varname;
+			node = parse_lvar_decl(seq, type);
 	    }else{
             node = expr(seq);
 	    }
-            expect_token(';', seq);
-            return node;
+        expect_token(';', seq);
+        return node;
     }
 }
 
@@ -396,6 +466,8 @@ Node *unary(TokenSeq *seq)
 		return new_node(ND_ADDR, unary(seq), (Node *)NULL);
 	}else if(consume('*', seq)){
 		return new_node(ND_DEREF, unary(seq), (Node *)NULL);
+	}else if(consume(TK_INC, seq)){
+		return new_node(ND_PREINC, unary(seq), (Node *)NULL);
 	}
     return term(seq);
 }
@@ -410,25 +482,28 @@ Node *term(TokenSeq *seq)
             error_at(get_token(seq)->input, 
                     ") expected");
         }
-        return node;
-    }
-
-    if(get_token(seq)->ty == TK_NUM){
-		int a = next(seq)->val;
-        node = new_node_num(a);
-    }else if(get_token(seq)->ty == TK_IDENT){
-		node = new_node_ident(seq);
-	}else if(get_token(seq)->ty == TK_STRING){
-		node = malloc(sizeof(Node));
-		node->ty = ND_STRING;
-		node->sval = next(seq)->sval;
     }else{
-        error_at(get_token(seq)->input, 
-                "unexpected token: expected a number");
-    }
-	if(consume('[', seq)){
-		node = new_node(ND_DEREF, new_node('+', expr(seq), node), NULL);
-		expect_token(']', seq);
+    	if(get_token(seq)->ty == TK_NUM){
+			int a = next(seq)->val;
+    	    node = new_node_num(a);
+    	}else if(get_token(seq)->ty == TK_IDENT){
+			node = new_node_ident(seq);
+		}else if(get_token(seq)->ty == TK_STRING){
+			node = malloc(sizeof(Node));
+			node->ty = ND_STRING;
+			node->sval = next(seq)->sval;
+    	}
+		else{
+    	    error_at(get_token(seq)->input, 
+    	            "unexpected token: expected a number");
+    	}
+		if(consume('[', seq)){
+			node = new_node(ND_DEREF, new_node('+', expr(seq), node), (Node *)NULL);
+			expect_token(']', seq);
+		}
+	}
+	if(consume(TK_INC, seq)){
+		node = new_node(ND_POSTINC, node, (Node *)NULL);
 	}
     return node;
 }
