@@ -81,7 +81,7 @@ int test18(){
 }
 
 int test19(){
-	int fact=1; for(int i=1;fact<10;i=i+1)fact=fact*i;return fact;
+	int fact=1; for(int i=1;fact<10;i++)fact=fact*i;return fact;
 }
 
 int test20(){
@@ -149,7 +149,7 @@ int test32(){
 }
 
 int test33(){
-	int *p; alloc4(&p, 0, 1, 2, 3); for(int i=0; i<4; i=i+1){*p=4+i; p=p+1;}return *(p-2);
+	int *p; alloc4(&p, 0, 1, 2, 3); for(int i=0; i<4; i++){*p=4+i; p=p+1;}return *(p-2);
 }
 
 int test34(){
@@ -177,7 +177,7 @@ int test39(){
 }
 
 int test40(){
-	int ary[10]; for (int i = 0; i < 10; i=i+1) *(i + ary) = i; return *(ary + 5); 
+	int ary[10]; for (int i = 0; i < 10; i++) *(i + ary) = i; return *(ary + 5); 
 }
 
 int test41(){
